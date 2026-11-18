@@ -1,0 +1,10 @@
+.venv/
+logs/
+state/
+__pycache__/
+*.pyc
+vendor/
+.applypilot/
+settings.json
+resume.pdf
+reports/

@@ -1,0 +1,2268 @@
+diff --git a/companies.yaml b/companies.yaml
+index 379fefd..b03e956 100644
+--- a/companies.yaml
++++ b/companies.yaml
+@@ -1,142 +1,1717 @@
+-# Sorted alphabetically by company name (case-insensitive).
+-#
+-# Each company has:
+-#   - name:       Display name used in reports
+-#   - url:        Canonical careers URL (for fallback / reference)
+-#   - region:     Bay Area | CA Other | Washington | NYC
+-#   - hq:         HQ city
+-#   - ats:        greenhouse | lever | ashby | workable | smartrecruiters | unknown | skip
+-#   - ats_config: ATS-specific identifiers (typically a slug or board name)
+-#   - probe_url:  (optional) override URL used by probe.py
+-#
+-# `ats: unknown` entries still need verification. The block comment below
+-# each such entry shows what probe v3 found (typically 0-job matches that
+-# are likely false positives — slug collisions or stale boards).
+-#
+-# Verification source is noted on each `ats:` line:
+-#   # detected via probe          — probe v2 (HTML/redirect scan)
+-#   # detected via probe v3 (N)   — probe v3 (direct API call), N jobs
+-#   # detected via probe v2 + v3  — both probes agree
+-#   # VERIFIED at scaffold time   — confirmed manually during initial build
+-
++# ATS slugs verified by probe (jobs > 0). Greenhouse/Ashby/Workday entries added in bulk on 2026-11-11.
+ companies:
+-
+-  - name: Airbyte
+-    url: https://airbyte.com/company/careers
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: ashby  # detected via probe
+-    ats_config:
+-      org: airbyte
+-
+-  - name: BetterUp
+-    url: https://www.betterup.com/about-us/careers
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: ashby  # detected via probe
+-    ats_config:
+-      org: betterup
+-
+-  - name: Databricks
+-    url: https://www.databricks.com/company/careers
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: greenhouse  # detected via probe v3 (784 jobs)
+-    ats_config:
+-      board: databricks
+-
+-  - name: Electric AI
+-    url: https://www.electric.ai/careers
+-    region: NYC
+-    hq: New York
+-    ats: ashby  # detected via probe
+-    ats_config:
+-      org: Electric
+-
+-  - name: Glean
+-    url: https://www.glean.com/careers
+-    region: Bay Area
+-    hq: Palo Alto
+-    ats: smartrecruiters  # detected via probe v3 (1 job)
+-    ats_config:
+-      company: glean
+-
+-  - name: Gusto
+-    url: https://gusto.com/about/careers
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: greenhouse  # detected via probe v3 (75 jobs)
+-    ats_config:
+-      board: gusto
+-
+-  - name: Highspot
+-    url: https://www.highspot.com/careers/
+-    region: Washington
+-    hq: Seattle
+-    ats: lever  # detected via probe v3 (4 jobs)
+-    ats_config:
+-      slug: highspot
+-
+-  - name: Ironclad
+-    url: https://ironcladapp.com/careers/
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: ashby  # detected via probe
+-    ats_config:
+-      org: ironcladhq
+-
+-  - name: Lyra Health
+-    url: https://www.lyrahealth.com/careers/
+-    region: Bay Area
+-    hq: Burlingame
+-    ats: lever  # detected via probe v3 (408 jobs)
+-    ats_config:
+-      slug: lyrahealth
+-
+-  - name: SmartRecruiters
+-    url: https://www.smartrecruiters.com/careers/
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: smartrecruiters  # detected via probe v3 (22 jobs)
+-    ats_config:
+-      company: smartrecruiters
+-
+-  - name: Tribble
+-    url: https://www.tribble.ai/careers/
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: unknown
+-    # Probe v3: matched smartrecruiters API with slug 'tribble' but 0 jobs.
+-    # Verify at: https://api.smartrecruiters.com/v1/companies/tribble/postings
+-
+-  - name: Uplimit
+-    url: https://uplimit.com/careers
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: unknown
+-    # Probe v3: matched smartrecruiters API with slug 'uplimit' but 0 jobs.
+-    # Verify at: https://api.smartrecruiters.com/v1/companies/uplimit/postings
+-
+-  - name: Vercel
+-    url: https://vercel.com/careers
+-    region: Bay Area
+-    hq: San Francisco
+-    ats: greenhouse  # detected via probe
+-    ats_config:
+-      board: vercel
+-
+-  - name: Vivun
+-    url: https://www.vivun.com/careers
+-    region: Bay Area
+-    hq: Oakland
+-    ats: ashby  # detected via probe
+-    ats_config:
+-      org: vivun
+-
+-  - name: You.com
+-    url: https://about.you.com/careers
+-    region: Bay Area
+-    hq: Palo Alto
+-    ats: greenhouse  # detected via probe v3 (11 jobs)
+-    ats_config:
+-      board: youcom
++- name: Airbnb
++  url: https://careers.airbnb.com
++  ats: greenhouse
++  ats_config:
++    board: airbnb
++- name: Anthropic
++  url: https://www.anthropic.com/careers
++  ats: greenhouse
++  ats_config:
++    board: anthropic
++- name: Asana
++  url: https://asana.com/jobs
++  ats: greenhouse
++  ats_config:
++    board: asana
++- name: Cloudflare
++  url: https://www.cloudflare.com/careers
++  ats: greenhouse
++  ats_config:
++    board: cloudflare
++- name: Coinbase
++  url: https://www.coinbase.com/careers
++  ats: greenhouse
++  ats_config:
++    board: coinbase
++- name: Databricks
++  url: https://www.databricks.com/company/careers
++  ats: greenhouse
++  ats_config:
++    board: databricks
++- name: Datadog
++  url: https://careers.datadoghq.com
++  ats: greenhouse
++  ats_config:
++    board: datadog
++- name: Discord
++  url: https://discord.com/careers
++  ats: greenhouse
++  ats_config:
++    board: discord
++- name: Duolingo
++  url: https://careers.duolingo.com
++  ats: greenhouse
++  ats_config:
++    board: duolingo
++- name: Figma
++  url: https://www.figma.com/careers
++  ats: greenhouse
++  ats_config:
++    board: figma
++- name: Instacart
++  url: https://instacart.careers
++  ats: greenhouse
++  ats_config:
++    board: instacart
++- name: Linear
++  url: https://linear.app/careers
++  ats: ashby
++  ats_config:
++    org: linear
++- name: MongoDB
++  url: https://www.mongodb.com/careers
++  ats: greenhouse
++  ats_config:
++    board: mongodb
++- name: Notion
++  url: https://www.notion.so/careers
++  ats: ashby
++  ats_config:
++    org: notion
++- name: OpenAI
++  url: https://openai.com/careers
++  ats: ashby
++  ats_config:
++    org: openai
++- name: Pinterest
++  url: https://www.pinterestcareers.com
++  ats: greenhouse
++  ats_config:
++    board: pinterest
++- name: Plaid
++  url: https://plaid.com/careers
++  ats: ashby
++  ats_config:
++    org: plaid
++- name: Ramp
++  url: https://ramp.com/careers
++  ats: ashby
++  ats_config:
++    org: ramp
++- name: Reddit
++  url: https://www.redditinc.com/careers
++  ats: greenhouse
++  ats_config:
++    board: reddit
++- name: Robinhood
++  url: https://careers.robinhood.com
++  ats: greenhouse
++  ats_config:
++    board: robinhood
++- name: Squarespace
++  url: https://www.squarespace.com/about/careers
++  ats: greenhouse
++  ats_config:
++    board: squarespace
++- name: Stripe
++  url: https://stripe.com/jobs
++  ats: greenhouse
++  ats_config:
++    board: stripe
++- name: Twilio
++  url: https://www.twilio.com/en-us/company/jobs
++  ats: greenhouse
++  ats_config:
++    board: twilio
++- name: Elastic
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: elastic
++- name: Okta
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: okta
++- name: Twitch
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: twitch
++- name: Peloton
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: peloton
++- name: Oscar Health
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: oscar
++- name: Flatiron Health
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: flatironhealth
++- name: Gusto
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: gusto
++- name: Brex
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: brex
++- name: Carta
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: carta
++- name: Chime
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: chime
++- name: Affirm
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: affirm
++- name: Lyft
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: lyft
++- name: Dropbox
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: dropbox
++- name: Box
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: boxinc
++- name: Toast
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: toast
++- name: Klaviyo
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: klaviyo
++- name: Samsara
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: samsara
++- name: Scale AI
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: scaleai
++- name: Waymo
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: waymo
++- name: Jane Street
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: janestreet
++- name: Jump Trading
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: jumptrading
++- name: IMC Trading
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: imc
++- name: Akuna Capital
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: akunacapital
++- name: Flow Traders
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: flowtraders
++- name: Virtu Financial
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: virtu
++- name: Point72
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: point72
++- name: Zocdoc
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: zocdoc
++- name: Betterment
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: betterment
++- name: Justworks
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: justworks
++- name: Kickstarter
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: kickstarter
++- name: Yext
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: yext
++- name: Braze
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: braze
++- name: SeatGeek
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: seatgeek
++- name: Medium
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: medium
++- name: FanDuel
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: fanduel
++- name: Fivetran
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: fivetran
++- name: Snowflake
++  url: ''
++  ats: ashby
++  ats_config:
++    org: snowflake
++- name: GitLab
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: gitlab
++- name: Airtable
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: airtable
++- name: Vercel
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: vercel
++- name: Webflow
++  url: ''
++  ats: ashby
++  ats_config:
++    org: webflow
++- name: Miro
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Miro
++- name: Fastly
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: fastly
++- name: PagerDuty
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: pagerduty
++- name: New Relic
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: newrelic
++- name: Sumo Logic
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: sumologic
++- name: LaunchDarkly
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: launchdarkly
++- name: Amplitude
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Amplitude
++- name: Mixpanel
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: mixpanel
++- name: Intercom
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: intercom
++- name: Qualtrics
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: qualtrics
++- name: SurveyMonkey
++  url: ''
++  ats: ashby
++  ats_config:
++    org: surveymonkey
++- name: Faire
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: faire
++- name: Flexport
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: flexport
++- name: Roblox
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: roblox
++- name: Epic Games
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: epicgames
++- name: Riot Games
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: riotgames
++- name: Strava
++  url: ''
++  ats: ashby
++  ats_config:
++    org: strava
++- name: Whoop
++  url: ''
++  ats: ashby
++  ats_config:
++    org: whoop
++- name: Oura
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: oura
++- name: Lemonade
++  url: ''
++  ats: ashby
++  ats_config:
++    org: lemonade
++- name: Clover Health
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: cloverhealth
++- name: Benchling
++  url: ''
++  ats: ashby
++  ats_config:
++    org: benchling
++- name: Ginkgo Bioworks
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: ginkgobioworks
++- name: Gemini
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: gemini
++- name: Circle
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Circle
++- name: Ripple
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: ripple
++- name: Fireblocks
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: fireblocks
++- name: Paxos
++  url: ''
++  ats: ashby
++  ats_config:
++    org: paxos
++- name: Bitgo
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: bitgo
++- name: Alchemy
++  url: ''
++  ats: ashby
++  ats_config:
++    org: alchemy
++- name: Consensys
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: consensys
++- name: Block
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: block
++- name: Adyen
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: adyen
++- name: Bill.com
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: billcom
++- name: TripActions
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: tripactions
++- name: Expensify
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Expensify
++- name: Mercury
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: mercury
++- name: Lattice
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: lattice
++- name: Culture Amp
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: cultureamp
++- name: Greenhouse
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: greenhouse
++- name: Indeed
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: indeed1
++- name: Coursera
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: coursera
++- name: Udemy
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: udemy
++- name: Khan Academy
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: khanacademy
++- name: SoFi
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: sofi
++- name: Upstart
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: upstart
++- name: Blend
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: blend
++- name: Tastytrade
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: tastytrade
++- name: Clear Street
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: clearstreet
++- name: Addepar
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: addepar1
++- name: AlphaSense
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: alphasense
++- name: Mark43
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: mark43
++- name: Epirus
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: epirus
++- name: Planet Labs
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: planetlabs
++- name: Spire Global
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: spire
++- name: BlackSky
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: blacksky
++- name: Relativity Space
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: relativity
++- name: Rocket Lab
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: rocketlab
++- name: Astranis
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: astranis
++- name: Together AI
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: togetherai
++- name: Wiz
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: wizinc
++- name: Tailscale
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: tailscale
++- name: Zscaler
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: zscaler
++- name: Verkada
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: verkada
++- name: Axon
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: axon
++- name: Motive
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: motive
++- name: Via
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: via
++- name: Bird
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: bird
++- name: Nuro
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: nuro
++- name: SpaceX
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: spacex
++- name: TripAdvisor
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: tripadvisor
++- name: Groupon
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: groupon
++- name: Rent the Runway
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: renttherunway
++- name: Stitch Fix
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: stitchfix
++- name: Glossier
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: glossier
++- name: Harry's
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: harrys
++- name: Everlane
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: everlane
++- name: Sweetgreen
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: sweetgreen
++- name: HelloFresh
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: hellofresh
++- name: ClassPass
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: classpass
++- name: Mindbody
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: mindbody
++- name: Calm
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: calm
++- name: Talkspace
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: talkspace
++- name: Sword Health
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: swordhealth
++- name: Maven Clinic
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: mavenclinic
++- name: Doximity
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: doximity
++- name: Komodo Health
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: komodohealth
++- name: Natera
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: natera
++- name: Twist Bioscience
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: twistbioscience
++- name: Anaplan
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: anaplan
++- name: Appian
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: appian
++- name: Bandwidth
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: bandwidth
++- name: CarGurus
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: cargurus
++- name: Carvana
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: carvana
++- name: Checkr
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: checkr
++- name: Cockroach Labs
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: cockroachlabs
++- name: Contentful
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: contentful
++- name: Cribl
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: cribl
++- name: Dataiku
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: dataiku
++- name: Dremio
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: dremio
++- name: Fanatics
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: fanaticsinc
++- name: Grafana Labs
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: grafanalabs
++- name: Jamf
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: jamf
++- name: Knock
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: knock
++- name: Lucid Software
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: lucidsoftware
++- name: Monzo
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: monzo
++- name: Narvar
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: narvar
++- name: Nextdoor
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: nextdoor
++- name: Ocrolus
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: ocrolusinc
++- name: OneTrust
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: onetrust
++- name: OpenTable
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: opentable
++- name: Orca Security
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: orcasecurity
++- name: Pendo
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: pendo
++- name: PlanetScale
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: planetscale
++- name: Pure Storage
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: purestorage
++- name: Rubrik
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: rubrik
++- name: Salesloft
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: salesloft
++- name: Sezzle
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: sezzle
++- name: Sigma Computing
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: sigmacomputing
++- name: SingleStore
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: singlestore
++- name: Smartsheet
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: smartsheet
++- name: StackAdapt
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: stackadapt
++- name: Starburst
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: starburst
++- name: Tanium
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: tanium
++- name: TripleLift
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: triplelift
++- name: Tubi
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: tubi
++- name: Vox Media
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: voxmedia
++- name: Yotpo
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: yotpo
++- name: ZipRecruiter
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: ziprecruiter
++- name: Zuora
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: zuora
++- name: StubHub
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: stubhubinc
++- name: Roku
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: roku
++- name: Hive
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: hive
++- name: IonQ
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: ionq
++- name: 2U
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: 2u
++- name: Schonfeld
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: schonfeld
++- name: ExodusPoint
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: exoduspoint
++- name: Tower Research Capital
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: towerresearchcapital
++- name: Squarepoint Capital
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: squarepointcapital
++- name: Man Group
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: mangroup
++- name: AQR
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: aqr
++- name: General Atlantic
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: generalatlantic
++- name: Insight Partners
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: insight
++- name: Wise
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: wise
++- name: N26
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: n26
++- name: Payoneer
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: payoneer
++- name: Titan
++  url: ''
++  ats: ashby
++  ats_config:
++    org: titan
++- name: Daylight
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: daylight
++- name: Step
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: step
++- name: Current
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: current
++- name: Dave
++  url: ''
++  ats: ashby
++  ats_config:
++    org: dave
++- name: Imprint
++  url: ''
++  ats: ashby
++  ats_config:
++    org: imprint
++- name: Mission Lane
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: missionlane
++- name: Paystand
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: paystand
++- name: Anrok
++  url: ''
++  ats: ashby
++  ats_config:
++    org: anrok
++- name: Pilot
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: pilothq
++- name: Oyster
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Oyster
++- name: Velocity Global
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Velocity
++- name: Workato
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: workato
++- name: Zapier
++  url: ''
++  ats: ashby
++  ats_config:
++    org: zapier
++- name: Airbyte
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Airbyte
++- name: Amperity
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: amperity
++- name: Harness
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: harnessinc
++- name: CircleCI
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: circleci
++- name: Buildkite
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: buildkite
++- name: Sentry
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Sentry
++- name: Honeycomb
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: honeycomb
++- name: Axiom
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: axiom
++- name: Expel
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: expel
++- name: Huntress
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: huntress
++- name: Abnormal Security
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: abnormalsecurity
++- name: Material Security
++  url: ''
++  ats: ashby
++  ats_config:
++    org: materialsecurity
++- name: Island
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: island
++- name: Chainguard
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: chainguard
++- name: Socket
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: socket
++- name: Endor Labs
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: endorlabs
++- name: Semgrep
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Semgrep
++- name: Apiiro
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: apiiro
++- name: Orca
++  url: ''
++  ats: ashby
++  ats_config:
++    org: Orca
++- name: Sentra
++  url: ''
++  ats: ashby
++  ats_config:
++    org: sentra
++- name: BigID
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: bigid
++- name: Transcend
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: transcendinc
++- name: Ethyca
++  url: ''
++  ats: ashby
++  ats_config:
++    org: ethyca
++- name: DataGrail
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: datagrail
++- name: Osano
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: osano
++- name: Thoropass
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: thoropass
++- name: Hyperproof
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: hyperproof
++- name: Descope
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: descope
++- name: Capital One
++  url: ''
++  ats: workday
++  ats_config:
++    host: capitalone.wd12.myworkdayjobs.com
++    tenant: capitalone
++    site: Capital_One
++- name: Citi
++  url: ''
++  ats: workday
++  ats_config:
++    host: citi.wd5.myworkdayjobs.com
++    tenant: citi
++    site: '2'
++- name: BlackRock
++  url: ''
++  ats: workday
++  ats_config:
++    host: blackrock.wd1.myworkdayjobs.com
++    tenant: blackrock
++    site: BlackRock_Professional
++- name: Mastercard
++  url: ''
++  ats: workday
++  ats_config:
++    host: mastercard.wd1.myworkdayjobs.com
++    tenant: mastercard
++    site: CorporateCareers
++- name: Salesforce
++  url: ''
++  ats: workday
++  ats_config:
++    host: salesforce.wd12.myworkdayjobs.com
++    tenant: salesforce
++    site: External_Career_Site
++- name: Adobe
++  url: ''
++  ats: workday
++  ats_config:
++    host: adobe.wd5.myworkdayjobs.com
++    tenant: adobe
++    site: external_experienced
++- name: NVIDIA
++  url: ''
++  ats: workday
++  ats_config:
++    host: nvidia.wd5.myworkdayjobs.com
++    tenant: nvidia
++    site: NVIDIAExternalCareerSite
++- name: Intel
++  url: ''
++  ats: workday
++  ats_config:
++    host: intel.wd1.myworkdayjobs.com
++    tenant: intel
++    site: External
++- name: HP
++  url: ''
++  ats: workday
++  ats_config:
++    host: hp.wd5.myworkdayjobs.com
++    tenant: hp
++    site: ExternalCareerSite
++- name: Workday
++  url: ''
++  ats: workday
++  ats_config:
++    host: workday.wd5.myworkdayjobs.com
++    tenant: workday
++    site: Workday
++- name: Autodesk
++  url: ''
++  ats: workday
++  ats_config:
++    host: autodesk.wd1.myworkdayjobs.com
++    tenant: autodesk
++    site: Ext
++- name: Target
++  url: ''
++  ats: workday
++  ats_config:
++    host: target.wd5.myworkdayjobs.com
++    tenant: target
++    site: targetcareers
++- name: Disney
++  url: ''
++  ats: workday
++  ats_config:
++    host: disney.wd5.myworkdayjobs.com
++    tenant: disney
++    site: disneycareer
++- name: Warner Bros. Discovery
++  url: ''
++  ats: workday
++  ats_config:
++    host: warnerbros.wd5.myworkdayjobs.com
++    tenant: warnerbros
++    site: global
++- name: Pfizer
++  url: ''
++  ats: workday
++  ats_config:
++    host: pfizer.wd1.myworkdayjobs.com
++    tenant: pfizer
++    site: PfizerCareers
++- name: Merck
++  url: ''
++  ats: workday
++  ats_config:
++    host: msd.wd5.myworkdayjobs.com
++    tenant: msd
++    site: SearchJobs
++- name: Boeing
++  url: ''
++  ats: workday
++  ats_config:
++    host: boeing.wd1.myworkdayjobs.com
++    tenant: boeing
++    site: EXTERNAL_CAREERS
++- name: Northrop Grumman
++  url: ''
++  ats: workday
++  ats_config:
++    host: ngc.wd1.myworkdayjobs.com
++    tenant: ngc
++    site: Northrop_Grumman_External_Site
++- name: RTX
++  url: ''
++  ats: workday
++  ats_config:
++    host: globalhr.wd5.myworkdayjobs.com
++    tenant: globalhr
++    site: REC_RTX_Ext_Gateway
++- name: Booz Allen
++  url: ''
++  ats: workday
++  ats_config:
++    host: bah.wd1.myworkdayjobs.com
++    tenant: bah
++    site: BAH_Jobs
++- name: Leidos
++  url: ''
++  ats: workday
++  ats_config:
++    host: leidos.wd5.myworkdayjobs.com
++    tenant: leidos
++    site: External
++- name: Wells Fargo
++  url: ''
++  ats: workday
++  ats_config:
++    host: wf.wd1.myworkdayjobs.com
++    tenant: wf
++    site: WellsFargoJobs
++- name: Nasdaq
++  url: ''
++  ats: workday
++  ats_config:
++    host: nasdaq.wd1.myworkdayjobs.com
++    tenant: nasdaq
++    site: Global_External_Site
++- name: S&P Global
++  url: ''
++  ats: workday
++  ats_config:
++    host: spgi.wd5.myworkdayjobs.com
++    tenant: spgi
++    site: SPGI_Careers
++- name: FactSet
++  url: ''
++  ats: workday
++  ats_config:
++    host: factset.wd108.myworkdayjobs.com
++    tenant: factset
++    site: FactSetCareers
++- name: State Street
++  url: ''
++  ats: workday
++  ats_config:
++    host: statestreet.wd1.myworkdayjobs.com
++    tenant: statestreet
++    site: Global
++- name: T-Mobile
++  url: ''
++  ats: workday
++  ats_config:
++    host: tmobile.wd1.myworkdayjobs.com
++    tenant: tmobile
++    site: External
++- name: Zebra
++  url: ''
++  ats: workday
++  ats_config:
++    host: zebra.wd501.myworkdayjobs.com
++    tenant: zebra
++    site: Zebra_careers
++- name: GE Aerospace
++  url: ''
++  ats: workday
++  ats_config:
++    host: geaerospace.wd5.myworkdayjobs.com
++    tenant: geaerospace
++    site: ge_externalsite
++- name: Smucker
++  url: ''
++  ats: workday
++  ats_config:
++    host: smucker.wd5.myworkdayjobs.com
++    tenant: smucker
++    site: US_External_Careers
++- name: Zoetis
++  url: ''
++  ats: workday
++  ats_config:
++    host: zoetis.wd5.myworkdayjobs.com
++    tenant: zoetis
++    site: broadbean_external
++- name: Cisco
++  url: ''
++  ats: workday
++  ats_config:
++    host: cisco.wd5.myworkdayjobs.com
++    tenant: cisco
++    site: Cisco_Careers
++- name: Accenture
++  url: ''
++  ats: workday
++  ats_config:
++    host: accenture.wd103.myworkdayjobs.com
++    tenant: accenture
++    site: AccentureCareers
++- name: GM
++  url: ''
++  ats: workday
++  ats_config:
++    host: generalmotors.wd5.myworkdayjobs.com
++    tenant: generalmotors
++    site: Careers_GM
++- name: 3M
++  url: ''
++  ats: workday
++  ats_config:
++    host: 3m.wd1.myworkdayjobs.com
++    tenant: 3m
++    site: Search
++- name: Procter & Gamble
++  url: ''
++  ats: workday
++  ats_config:
++    host: pg.wd5.myworkdayjobs.com
++    tenant: pg
++    site: '1000'
++- name: Johnson & Johnson
++  url: ''
++  ats: workday
++  ats_config:
++    host: jj.wd5.myworkdayjobs.com
++    tenant: jj
++    site: JJ
++- name: Abbott
++  url: ''
++  ats: workday
++  ats_config:
++    host: abbott.wd5.myworkdayjobs.com
++    tenant: abbott
++    site: abbottcareers
++- name: Amgen
++  url: ''
++  ats: workday
++  ats_config:
++    host: amgen.wd1.myworkdayjobs.com
++    tenant: amgen
++    site: Careers
++- name: Coca-Cola
++  url: ''
++  ats: workday
++  ats_config:
++    host: coke.wd1.myworkdayjobs.com
++    tenant: coke
++    site: coca-cola-careers
++- name: Nike
++  url: ''
++  ats: workday
++  ats_config:
++    host: nike.wd1.myworkdayjobs.com
++    tenant: nike
++    site: nke
++- name: Verizon
++  url: ''
++  ats: workday
++  ats_config:
++    host: verizon.wd12.myworkdayjobs.com
++    tenant: verizon
++    site: verizon-careers
++- name: AT&T
++  url: ''
++  ats: workday
++  ats_config:
++    host: att.wd1.myworkdayjobs.com
++    tenant: att
++    site: ATTGeneral
++- name: Fidelity
++  url: ''
++  ats: workday
++  ats_config:
++    host: fmr.wd1.myworkdayjobs.com
++    tenant: fmr
++    site: FidelityCareers
++- name: Prudential
++  url: ''
++  ats: workday
++  ats_config:
++    host: pru.wd5.myworkdayjobs.com
++    tenant: pru
++    site: Careers
++- name: Marsh McLennan
++  url: ''
++  ats: workday
++  ats_config:
++    host: mmc.wd1.myworkdayjobs.com
++    tenant: mmc
++    site: MMC
++- name: Travelers
++  url: ''
++  ats: workday
++  ats_config:
++    host: travelers.wd5.myworkdayjobs.com
++    tenant: travelers
++    site: External
++- name: AIG
++  url: ''
++  ats: workday
++  ats_config:
++    host: aig.wd1.myworkdayjobs.com
++    tenant: aig
++    site: aig
++- name: MUFG
++  url: ''
++  ats: workday
++  ats_config:
++    host: mufgub.wd3.myworkdayjobs.com
++    tenant: mufgub
++    site: MUFG-Careers
++- name: Santander
++  url: ''
++  ats: workday
++  ats_config:
++    host: santander.wd3.myworkdayjobs.com
++    tenant: santander
++    site: SantanderCareers
++- name: Barclays
++  url: ''
++  ats: workday
++  ats_config:
++    host: barclays.wd3.myworkdayjobs.com
++    tenant: barclays
++    site: External_Career_Site_Barclays
++- name: Deutsche Bank
++  url: ''
++  ats: workday
++  ats_config:
++    host: db.wd3.myworkdayjobs.com
++    tenant: db
++    site: DBWebsite
++- name: TD
++  url: ''
++  ats: workday
++  ats_config:
++    host: td.wd3.myworkdayjobs.com
++    tenant: td
++    site: TD_Bank_Careers
++- name: RBC
++  url: ''
++  ats: workday
++  ats_config:
++    host: rbc.wd3.myworkdayjobs.com
++    tenant: rbc
++    site: RBCGLOBAL1
++- name: PayPal
++  url: ''
++  ats: workday
++  ats_config:
++    host: paypal.wd1.myworkdayjobs.com
++    tenant: paypal
++    site: jobs
++- name: eBay
++  url: ''
++  ats: workday
++  ats_config:
++    host: ebay.wd5.myworkdayjobs.com
++    tenant: ebay
++    site: apply
++- name: Thomson Reuters
++  url: ''
++  ats: workday
++  ats_config:
++    host: thomsonreuters.wd5.myworkdayjobs.com
++    tenant: thomsonreuters
++    site: External_Career_Site
++- name: Wolters Kluwer
++  url: ''
++  ats: workday
++  ats_config:
++    host: wk.wd3.myworkdayjobs.com
++    tenant: wk
++    site: External
++- name: Lowe's
++  url: ''
++  ats: workday
++  ats_config:
++    host: lowes.wd5.myworkdayjobs.com
++    tenant: lowes
++    site: LWS_External_CS
++- name: Home Depot
++  url: ''
++  ats: workday
++  ats_config:
++    host: homedepot.wd5.myworkdayjobs.com
++    tenant: homedepot
++    site: CareerDepot
++- name: CVS
++  url: ''
++  ats: workday
++  ats_config:
++    host: cvshealth.wd1.myworkdayjobs.com
++    tenant: cvshealth
++    site: CVS_Health_Careers
++- name: Cigna
++  url: ''
++  ats: workday
++  ats_config:
++    host: cigna.wd5.myworkdayjobs.com
++    tenant: cigna
++    site: cignacareers
++- name: Humana
++  url: ''
++  ats: workday
++  ats_config:
++    host: humana.wd5.myworkdayjobs.com
++    tenant: humana
++    site: Humana_External_Career_Site
++- name: Anthem/Elevance
++  url: ''
++  ats: workday
++  ats_config:
++    host: elevancehealth.wd1.myworkdayjobs.com
++    tenant: elevancehealth
++    site: ANT
++- name: CACI
++  url: ''
++  ats: workday
++  ats_config:
++    host: caci.wd1.myworkdayjobs.com
++    tenant: caci
++    site: External
+diff --git a/locations.yaml b/locations.yaml
+index 401bea5..ff52640 100644
+--- a/locations.yaml
++++ b/locations.yaml
+@@ -1,150 +1,24 @@
+-# Location filter for job postings.
+-#
+-# A job matches if it satisfies BOTH:
+-#   1. At least one allow pattern (in any of the three sub-sections) hits
+-#   2. No exclude pattern hits
+-#
+-# Matching is case-insensitive substring containment for cities/states.
+-# Remote patterns and excludes are regex (also case-insensitive). The
+-# location string used for matching is whatever the ATS returns, which is
+-# inconsistent — could be "San Francisco", "San Francisco, CA",
+-# "San Francisco, California, US", "Remote — United States", etc. The
+-# patterns below are deliberately tolerant of these variations.
+-#
+-# Tune by editing this file; no code changes needed. The matcher logs
+-# everything it accepts/rejects at INFO level, so you can grep the run
+-# output to verify tuning effects.
+-
++# New York, Washington DC and US-remote only. Excludes win over allow rules.
+ allow:
+-
+-  # Specific cities. Plain substring match — "San Francisco" hits both
+-  # "San Francisco" and "San Francisco, CA" and "Remote (San Francisco)".
+   cities:
+-    - San Francisco
+-    - South San Francisco
+-    - San Mateo
+-    - Palo Alto
+-    - Mountain View
+-    - Redwood City
+-    - Redwood Shores
+-    - Sunnyvale
+-    - Santa Clara
+-    - Oakland
+-    - Berkeley
+-    - Burlingame
+-    - Milpitas
+-    - Los Altos
+-    - Danville
+-    - Culver City
+-    - Los Angeles
+-    - Santa Monica
+-    - San Diego
+-    - Seattle
+-    - Bellevue
+-    - Kirkland
+-    - Portland
+     - New York
+     - Brooklyn
+-
+-  # State-level fallback. Catches "Remote — California" or "California
+-  # (Remote)" style listings that don't name a specific city.
+-  states:
+-    - California
+-    - Washington
+-    - Oregon
+-    - New York
+-
+-  # Country/region-level fallback. Many companies list remote positions
+-  # just as "United States" or "North America" without explicitly using
+-  # the word "Remote" — these are still in-scope. Also catches the common
+-  # 2-letter state abbreviations ("Austin, TX" — well, TX isn't in our
+-  # list, but "Pasadena, CA" or "Brooklyn, NY" needs CA/NY).
+-  #
+-  # Treated as case-insensitive regex (not substring like cities/states),
+-  # so we can anchor short codes with word boundaries. Without this,
+-  # "USA" would match "Tulsa", "CA" would match "Canada", "NY" would
+-  # match "Anyone" — all bad.
+-  #
+-  # The excludes below still apply: "Remote — Canada" mentions "Canada"
+-  # which IS in North America, but gets caught by the Canada-remote
+-  # exclude before reaching this allow list.
++    - Manhattan
++    - Queens
++  states: []
+   regions:
+-    - "United States"
+-    - "\\bUSA\\b"
+-    - "\\bU\\.S\\.?\\b"          # matches "U.S." and "U.S"
+-    - "North America"
+-    - "\\bAmericas\\b"
+-    # State abbreviations, anchored so they don't catch random substrings.
+-    # OR is deliberately excluded — too many job listings use "Foo OR Bar"
+-    # or "City OR Remote" patterns, which would match \\bOR\\b. Oregon
+-    # listings still match via the full word "Oregon" (in states above)
+-    # and via Portland (in cities above).
+-    - "\\bCA\\b"
+-    - "\\bWA\\b"
++    - "\\bNYC\\b"
+     - "\\bNY\\b"
+-
+-  # Regex patterns for remote work. All case-insensitive. Anchored where
+-  # it matters to avoid spurious hits (e.g., the bare "Remote$" only
+-  # matches when "Remote" is the entire string, not when it appears as
+-  # a substring of "Remote - Europe").
++    - "Washington,?\\s*D\\.?C"
++    - "\\bD\\.?C\\.?\\b"
++    - "District of Columbia"
+   remote_patterns:
+     - "Remote.*United States"
+     - "Remote.*\\bUS\\b"
+-    - "Remote.*USA"
+-    - "\\bUS\\b.*Remote"
+-    - "USA.*Remote"
+-    - "United States.*Remote"
+-    - "Remote.*North America"
+-    - "North America.*Remote"
+-    - "Anywhere in the US"
+-    - "Anywhere in the United States"
++    - "Remote.*\\bUSA\\b"
+     - "^Remote$"
+-    - "^Fully Remote$"
+-    - "^Remote \\(.*\\)$"   # "Remote (US)", "Remote (any location)" etc.
+-
+-# Exclusions take precedence over allows. If any exclude regex matches,
+-# the location is rejected regardless of what the allow lists say.
+-#
+-# Why this matters: "Remote, Canada" matches "^Remote" if you weren't
+-# careful with anchoring, and "London, UK" doesn't get caught by the
+-# allow list but might sneak through some other path. The excludes are
+-# the safety net.
+ exclude:
+-  - "Remote.*Canada"
+-  - "Canada.*Remote"
+-  - "Remote.*EMEA"
+-  - "Remote.*Europe"
+-  - "Europe.*Remote"
+-  - "Remote.*EU\\b"
+-  - "Remote.*UK\\b"
+-  - "Remote.*United Kingdom"
+-  - "Remote.*Ireland"
+-  - "Remote.*Germany"
+-  - "Remote.*France"
+-  - "Remote.*Spain"
+-  - "Remote.*India"
+-  - "Remote.*LATAM"
+-  - "Remote.*Latin America"
+-  - "Remote.*APAC"
+-  - "Remote.*Asia"
+-  - "Remote.*Australia"
+-  - "Remote.*Brazil"
+-  - "Remote.*Mexico"
+-  # Specific foreign cities that might otherwise survive (e.g., a job
+-  # tagged "London, UK" wouldn't be caught by any allow pattern, but
+-  # let's be explicit about the common ones rather than rely on the
+-  # allow list being exhaustive.)
+-  - "\\bLondon\\b"
+-  - "\\bDublin\\b"
+-  - "\\bBerlin\\b"
+-  - "\\bAmsterdam\\b"
+-  - "\\bParis\\b"
+-  - "\\bMadrid\\b"
+-  - "\\bBarcelona\\b"
+-  - "\\bToronto\\b"
+-  - "\\bVancouver\\b"
+-  - "\\bBangalore\\b"
+-  - "\\bBengaluru\\b"
+-  - "\\bSingapore\\b"
+-  - "\\bSydney\\b"
+-  - "\\bTokyo\\b"
++    - "Remote.*Canada"
++    - "Remote.*(Europe|EMEA|APAC|India|LATAM|UK)"
++    - "\\bLondon\\b"
++    - "\\bToronto\\b"
+diff --git a/report.py b/report.py
+index e13b951..7fa5dd4 100644
+--- a/report.py
++++ b/report.py
+@@ -67,6 +67,7 @@ CSV_FIELDS = [
+     "title",
+     "location",
+     "department",
++    "posted_at",      # ISO time the ATS says the role was posted (blank if it doesn't say)
+     "url",
+ ]
+ 
+@@ -178,6 +179,7 @@ def _postings_to_rows(postings: list[dict], status: str, scraped_at: str) -> lis
+             "title":          p.get("title", ""),
+             "location":       p.get("location", ""),
+             "department":     p.get("department", ""),
++            "posted_at":      p.get("posted_at", ""),
+             "url":            p.get("url", ""),
+         }
+         for p in postings
+diff --git a/scrapers/__init__.py b/scrapers/__init__.py
+index 2068eb6..1eb83fa 100644
+--- a/scrapers/__init__.py
++++ b/scrapers/__init__.py
+@@ -15,6 +15,7 @@ from .greenhouse import GreenhouseScraper
+ from .lever import LeverScraper
+ from .smartrecruiters import SmartRecruitersScraper
+ from .workable import WorkableScraper
++from .workday import WorkdayScraper
+ 
+ SCRAPER_REGISTRY: dict[str, type[BaseScraper]] = {
+     "greenhouse": GreenhouseScraper,
+@@ -22,6 +23,7 @@ SCRAPER_REGISTRY: dict[str, type[BaseScraper]] = {
+     "ashby": AshbyScraper,
+     "workable": WorkableScraper,
+     "smartrecruiters": SmartRecruitersScraper,
++    "workday": WorkdayScraper,
+ }
+ 
+ __all__ = [
+diff --git a/scrapers/ashby.py b/scrapers/ashby.py
+index e93d115..d1da716 100644
+--- a/scrapers/ashby.py
++++ b/scrapers/ashby.py
+@@ -47,6 +47,7 @@ class AshbyScraper(BaseScraper):
+                     url=job_url,
+                     location=(job.get("locationName") or job.get("location") or "").strip(),
+                     department=(job.get("department") or "").strip(),
++                    posted_at=job.get("publishedAt") or "",
+                 )
+             )
+         return postings
+diff --git a/scrapers/base.py b/scrapers/base.py
+index 377d4f8..e87c137 100644
+--- a/scrapers/base.py
++++ b/scrapers/base.py
+@@ -24,6 +24,7 @@ class JobPosting:
+     url: str
+     location: str = ""
+     department: str = ""
++    posted_at: str = ""  # ISO timestamp from the ATS when it provides one
+ 
+     def to_dict(self) -> dict[str, Any]:
+         return asdict(self)
+diff --git a/scrapers/greenhouse.py b/scrapers/greenhouse.py
+index 32d46a7..b9921c6 100644
+--- a/scrapers/greenhouse.py
++++ b/scrapers/greenhouse.py
+@@ -57,6 +57,7 @@ class GreenhouseScraper(BaseScraper):
+                     url=absolute_url,
+                     location=location,
+                     department=department,
++                    posted_at=job.get("first_published") or "",
+                 )
+             )
+         return postings
+diff --git a/scrapers/lever.py b/scrapers/lever.py
+index a87fce8..64ee3f3 100644
+--- a/scrapers/lever.py
++++ b/scrapers/lever.py
+@@ -8,11 +8,18 @@ No auth for public companies. Returns a flat list of postings.
+ 
+ from __future__ import annotations
+ 
++from datetime import datetime, timezone
++
+ import requests
+ 
+ from .base import BaseScraper, JobPosting, ScrapeError
+ 
+ 
++def _iso_from_ms(ms) -> str:
++    """Lever reports createdAt as epoch milliseconds."""
++    return datetime.fromtimestamp(ms / 1000, timezone.utc).isoformat() if ms else ""
++
++
+ class LeverScraper(BaseScraper):
+     ATS_NAME = "lever"
+     API_URL = "https://api.lever.co/v0/postings/{slug}?mode=json"
+@@ -52,6 +59,7 @@ class LeverScraper(BaseScraper):
+                     url=hosted_url,
+                     location=(categories.get("location") or "").strip(),
+                     department=(categories.get("team") or "").strip(),
++                    posted_at=_iso_from_ms(job.get("createdAt")),
+                 )
+             )
+         return postings
+diff --git a/titles.yaml b/titles.yaml
+index a21b65a..3c57d44 100644
+--- a/titles.yaml
++++ b/titles.yaml
+@@ -1,116 +1,12 @@
+-# =============================================================================
+-# titles.yaml — which job titles count as a match
+-# =============================================================================
+-#
+-# This is a WORKED EXAMPLE that targets engineering-leadership roles
+-# (Engineering Manager through CTO). It's fully functional as-is, but it's
+-# meant to be REPLACED with whatever roles you want to track — sales,
+-# design, data, product, anything. Edit the entries below; no code changes
+-# needed.
+-#
+-# HOW MATCHING WORKS
+-# ------------------
+-# Each entry under `titles:` has a name and two lists of case-insensitive
+-# regular expressions:
+-#
+-#   - patterns:  ANY pattern matching the job title = a hit for this category.
+-#   - excludes:  ANY exclude matching the title DISQUALIFIES it, even if a
+-#                pattern matched. Excludes win over patterns.
+-#
+-# Example: the title "Engineering Program Manager" matches the Engineering
+-# Manager pattern `engineering ... manager`, but is then thrown out by the
+-# exclude `program manager`. Net result: not a match. Tune both lists after
+-# your first 2-3 runs based on the false positives/negatives you see.
+-#
+-# A NOTE ON SHORT-ACRONYM PATTERNS
+-# --------------------------------
+-# A couple of patterns below match short acronyms — `\bcto\b` and
+-# `\bem,?\s+` ("EM, Platform"). These are the most false-positive-prone:
+-# `\bcto\b` could match an unrelated "CTO" token, and `\bem` is a very short
+-# anchor. They're kept because in practice they catch real titles this
+-# cohort uses, and the excludes mop up the common false hits. If you adapt
+-# this file and add your own short-acronym patterns, expect to spend the
+-# most tuning effort there.
+-# =============================================================================
+-
++# Internship / co-op titles. Excludes win over patterns.
+ titles:
+-  - name: Engineering Manager
++  - name: Internship
+     patterns:
+-      - '\b(?:engineering|software)\s+manager\b'
+-      - '\bmanager,?\s+(?:sw\s+)?engineering\b'
+-      - '\bem,?\s+'                                 # "EM, Platform"
++      - '\bintern(?:ship)?s?\b'
++      - '\bco-?op\b'
+     excludes:
+-      - 'program\s+manager'
+-      - 'product\s+manager'
+-      - 'project\s+manager'
+-      - 'operations\s+manager'
+-      - 'community\s+manager'
+-      - 'account\s+manager'
+-
+-  - name: Director of Engineering
+-    patterns:
+-      - '\bdirector\s+of\s+engineering\b'
+-      - '\bengineering\s+director\b'
+-      - '\bdirector,?\s+engineering\b'
+-      - '\bsenior\s+director,?\s+engineering\b'
+-    excludes:
+-      - 'director\s+of\s+engineering\s+(?:operations|program|programs|recruiting)'
+-
+-  - name: VP of Engineering
+-    patterns:
+-      - '\b(?:vp|vice\s+president)\s+(?:of\s+)?engineering\b'
+-      - '\bsvp\s+(?:of\s+)?engineering\b'
+-      - '\bhead\s+of\s+engineering\b'              # often equivalent at smaller cos
+-    excludes: []
+-
+-  - name: CTO
+-    patterns:
+-      - '\bchief\s+technology\s+officer\b'
+-      - '\bcto\b'
+-    excludes:
+-      - 'office\s+of\s+the\s+cto'                  # ICs in CTO office, not the role
+-      - 'cto[-\s]+as[-\s]+a[-\s]+service'
+-
+-# =============================================================================
+-# SECOND WORKED EXAMPLE — a different domain (commented out)
+-# =============================================================================
+-#
+-# To show the structure generalizes beyond engineering, here's a complete,
+-# ready-to-use block for project-management roles. Uncomment it (remove the
+-# leading "# " from each line, keeping the indentation) to track these
+-# alongside — or instead of — the engineering categories above.
+-#
+-# IMPORTANT — overlap with the example above: the Engineering Manager entry
+-# EXCLUDES 'project manager' (to keep PMs out of an eng-manager search). If
+-# you enable this PM block while keeping the eng block, that's fine — they're
+-# independent categories, and a single posting can match more than one. But
+-# it illustrates a key idea: one category's exclude is another category's
+-# target. When you build your own categories, think about how their patterns
+-# and excludes interact.
+-#
+-#  - name: Project Manager
+-#    patterns:
+-#      - '\bproject\s+manager\b'
+-#      - '\bmanager,?\s+project\b'
+-#      - '\bpm,?\s+'                                # "PM, Infrastructure" — short anchor, expect false positives
+-#    excludes:
+-#      - 'program\s+manager'                        # PgM is a distinct role
+-#      - 'product\s+manager'                        # different PM
+-#      - 'associate\s+project\s+manager'            # drop if you DO want junior roles
+-#
+-#  - name: Senior Project Manager
+-#    patterns:
+-#      - '\bsenior\s+project\s+manager\b'
+-#      - '\bsr\.?\s+project\s+manager\b'
+-#      - '\blead\s+project\s+manager\b'
+-#    excludes:
+-#      - 'program\s+manager'
+-#      - 'product\s+manager'
+-#
+-#  - name: Project Leader
+-#    patterns:
+-#      - '\bproject\s+lead(?:er)?\b'                # matches "Project Lead" and "Project Leader"
+-#      - '\blead,?\s+project\b'
+-#    excludes:
+-#      - 'product\s+lead'
+-#      - 'program\s+lead'
++      - '\bsenior\b'
++      - '\bstaff\b'
++      - '\bprincipal\b'
++      - '\bdirector\b'
++      - '\bphd\b'
