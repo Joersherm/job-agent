@@ -1,5 +1,5 @@
 diff --git a/companies.yaml b/companies.yaml
-index 379fefd..85ef3a0 100644
+index 379fefd..a6a8f29 100644
 --- a/companies.yaml
 +++ b/companies.yaml
 @@ -1,142 +1,2259 @@
@@ -863,12 +863,12 @@ index 379fefd..85ef3a0 100644
 +    board: hellofresh
 +- name: ClassPass
 +  url: ''
-+  ats: greenhouse
++  ats: skip  # Greenhouse board 'classpass' returned 404
 +  ats_config:
 +    board: classpass
 +- name: Mindbody
 +  url: ''
-+  ats: greenhouse
++  ats: skip  # Greenhouse board 'mindbody' returned 404
 +  ats_config:
 +    board: mindbody
 +- name: Calm

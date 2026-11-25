@@ -20,7 +20,7 @@ python3 -m venv .venv
 .venv/bin/pip install ./vendor/ApplyPilot
 # python-jobspy pins an old numpy, so it is installed without its dependencies (see ApplyPilot's README).
 .venv/bin/pip install --no-deps python-jobspy
-.venv/bin/pip install pydantic tls-client requests markdownify regex
+.venv/bin/pip install pydantic tls-client requests markdownify regex "curl_cffi>=0.16.2"
 .venv/bin/playwright install chromium
 [ -f settings.json ] || cp settings.example.json settings.json
 echo "Done. Next: .venv/bin/python scripts/onboard.py"

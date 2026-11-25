@@ -24,7 +24,7 @@ HOME_DIR = Path.home() / ".applypilot"
 LINK_DIR = ROOT / ".applypilot"
 SETTINGS = ROOT / "settings.json"
 LOCATIONS = ROOT / "vendor" / "roledar" / "locations.yaml"
-SHARED = ("profile.json", "resume.txt", ".env")
+SHARED = ("profile.json", "resume.txt", ".env", "searches.yaml")
 
 
 def ask(question: str, default: str = "") -> str:
@@ -89,7 +89,8 @@ def personal_files() -> None:
     if yes("Run the ApplyPilot wizard now?" if not exists else "A profile exists. Redo the wizard (overwrites it)?",
            not exists):
         env = {k: v for k, v in os.environ.items() if k != "APPLYPILOT_DIR"}
-        subprocess.run([str(ROOT / ".venv" / "bin" / "applypilot"), "init"], env=env, check=True)
+        if subprocess.run([str(ROOT / ".venv" / "bin" / "applypilot"), "init"], env=env).returncode != 0:
+            raise KeyboardInterrupt  # cancelled or failed: stop without a traceback
 
 
 def link_files() -> None:

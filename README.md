@@ -80,9 +80,10 @@ None of your data is in this repo. You add it through onboarding, or by hand:
 | `~/.applypilot/resume.txt` | Plain-text resume the AI tailors from | Give the wizard a `.txt` resume. If you give it a PDF, also give it the text version |
 | `~/.applypilot/profile.json` | Contact details, work authorization, skills, resume facts | Created by the wizard. See `vendor/ApplyPilot/profile.example.json` for the fields |
 | `~/.applypilot/.env` | `GEMINI_API_KEY=your-key` | Created by the wizard, or add that line yourself |
+| `~/.applypilot/searches.yaml` | ApplyPilot search settings | Created by the wizard |
 | `settings.json` | Job preferences and limits | Created by onboarding, or copy `settings.example.json` |
 
-The pipeline reads the first three through links in `./.applypilot/`. Onboarding creates them. If you add the files by
+The pipeline reads the files in `~/.applypilot/` through links in `./.applypilot/`. Onboarding creates them. If you add the files by
 hand, run onboarding once and answer `n` when it offers the wizard.
 
 `state/`, `logs/` and `reports/` (application history, logs and reports) are created as the agent runs. You don't add
