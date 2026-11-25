@@ -77,6 +77,8 @@ def ask_claude(commits: dict[str, list[str]], settings: dict) -> list[str]:
 def sync(settings: dict | None = None, log=print) -> bool:
     """True if the resume entry was rewritten."""
     settings = settings or json.loads(SETTINGS.read_text())
+    if not settings.get("experience_repos_dir"):
+        return False  # feature turned off
     repos_dir = Path(settings["experience_repos_dir"]).expanduser()
     commits = commit_subjects(repos_dir, settings["experience_author"], settings["experience_since"])
     if not commits:

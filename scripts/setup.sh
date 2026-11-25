@@ -17,5 +17,9 @@ cp patches/applypilot/latex_resume.py     vendor/ApplyPilot/src/applypilot/scori
 python3 -m venv .venv
 .venv/bin/pip install -r vendor/roledar/requirements.txt
 .venv/bin/pip install ./vendor/ApplyPilot
+# python-jobspy pins an old numpy, so it is installed without its dependencies (see ApplyPilot's README).
+.venv/bin/pip install --no-deps python-jobspy
+.venv/bin/pip install pydantic tls-client requests markdownify regex
+.venv/bin/playwright install chromium
 [ -f settings.json ] || cp settings.example.json settings.json
-echo "Done. Next: .venv/bin/applypilot init, then see README.md (install the LaunchAgents with scripts/install-launchd.sh)."
+echo "Done. Next: .venv/bin/python scripts/onboard.py"

@@ -171,6 +171,14 @@ def is_nyc(location: str) -> bool:
     return bool(NYC_RE.search(location or ""))
 
 
+def apply_prefs(settings: dict) -> None:
+    """Use the preferred cities and remote choice from settings.json (written by scripts/onboard.py)."""
+    global NYC_RE
+    if settings.get("priority_regex"):
+        NYC_RE = newsletter.NY_RE = re.compile(settings["priority_regex"], re.I)
+    newsletter.INCLUDE_REMOTE = settings.get("include_remote", True)
+
+
 def priority(meta: dict) -> int:
     """0 = New York City, 1 = other local (DC / remote), 2 = rest of the US."""
     if meta.get("tier", "local") != "local":
@@ -369,7 +377,7 @@ def continue_application(url: str, settings: dict, port: int | None = None) -> i
     cmd = [str(APPLYPILOT), "apply", "--url", url, "--model", settings.get("apply_model", "haiku")]
     run(cmd, env={**os.environ, "APPLYPILOT_REUSE_CHROME": "1", "APPLYPILOT_CONTINUE": "1",
                   "APPLYPILOT_WORKER_ID": str(port - BASE_PORT),
-                  "APPLYPILOT_ANY_US": "1" if priority(meta) > 0 else "0"})
+                  "APPLYPILOT_ANY_US": "1" if settings.get("us_fallback", True) and priority(meta) > 0 else "0"})
     status, error, title, _ = apply_outcome(url)
     name = title or meta.get("title") or url
     if status == "applied":
@@ -735,6 +743,7 @@ def queue_rows(rows: list[dict], ledger: dict, t: datetime) -> None:
 
 def scan_pass(settings: dict, ledger: dict) -> None:
     """One sweep of the job boards; whatever it finds is queued the moment it is found."""
+    apply_prefs(settings)
     t = now()
     try:
         sync_experience.sync(settings, log)
@@ -820,6 +829,7 @@ def main(argv: list[str] | None = None) -> int:
             os.environ["LLM_MODEL"] = cfg["llm_model"]
         os.environ["APPLYPILOT_APPLY_IDLE"] = str(int(cfg.get("apply_idle_minutes", 10)) * 60)
         os.environ["APPLYPILOT_APPLY_TIMEOUT"] = str(int(cfg.get("apply_timeout_minutes", 60)) * 60)
+        apply_prefs(cfg)
         return continue_application(args.continue_url, cfg, args.port)
 
     if args.retry_failed:
@@ -837,6 +847,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     settings = json.loads(SETTINGS.read_text())
+    apply_prefs(settings)
     if settings.get("llm_model"):
         os.environ["LLM_MODEL"] = settings["llm_model"]  # wins over the model in .env
     os.environ["APPLYPILOT_APPLY_IDLE"] = str(int(settings.get("apply_idle_minutes", 10)) * 60)
@@ -991,7 +1002,7 @@ def main(argv: list[str] | None = None) -> int:
             if dry:
                 cmd.append("--dry-run")
             env = {**os.environ, "APPLYPILOT_WORKER_ID": str(slot),
-                   "APPLYPILOT_ANY_US": "1" if priority(meta) > 0 else "0"}  # outside NYC: any US city is fine
+                   "APPLYPILOT_ANY_US": "1" if settings.get("us_fallback", True) and priority(meta) > 0 else "0"}
             rc = run(cmd, env=env)
             if dry:
                 record_application(url, meta, "dry run", "")

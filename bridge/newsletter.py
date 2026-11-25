@@ -21,6 +21,7 @@ NY_RE = re.compile(r"new york|\bnyc\b|brooklyn|manhattan|queens|washington,?\s*d
 REMOTE_RE = re.compile(r"remote", re.I)
 SOME_STATES_ONLY_RE = re.compile(r"remote work in", re.I)
 MAX_ISSUES = 3
+INCLUDE_REMOTE = True
 
 
 def clean_url(url: str) -> str:
@@ -80,7 +81,7 @@ def location_ok(text: str) -> bool:
     text = re.sub(r"[-_/]", " ", text)
     if NY_RE.search(text):
         return True
-    return bool(REMOTE_RE.search(text)) and not SOME_STATES_ONLY_RE.search(text)
+    return INCLUDE_REMOTE and bool(REMOTE_RE.search(text)) and not SOME_STATES_ONLY_RE.search(text)
 
 
 def select(items: list[dict], ledger: dict, t: datetime) -> list[dict]:
