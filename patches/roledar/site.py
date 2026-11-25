@@ -31,20 +31,23 @@ Hooks a subclass can override, all optional except parse():
 from __future__ import annotations
 
 import atexit
+import functools
+import ipaddress
 import json
 import os
 import re
 import signal
+import socket
 import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin, urlsplit
 
 import requests
 
 from . import _pw
-from .base import BaseScraper, JobPosting, ScrapeError
+from .base import BaseScraper, EmptyResult, JobPosting, ScrapeError
 
 UA = {"User-Agent": "Mozilla/5.0"}
 SITE_PORT = int(os.environ.get("SITE_CHROME_PORT", "9227"))  # own port: never shares another scan's Chrome
@@ -63,6 +66,38 @@ def iso_day(raw: str) -> str:
             continue
         return "" if day >= datetime.now().date() else day.isoformat()
     return ""
+
+
+SEARCH_TERM = re.compile(r"(?<=[?&]q=)intern(?=&|#|$)")  # an exact "q=intern"
+
+
+def uses_query(config: dict) -> bool:
+    """False when a generic reader would load the same address whatever the search term."""
+    url = config.get("url", "")
+    custom = config.get("impl") not in (None, "meta", "uber")  # these send the term outside the address
+    return custom or "{query}" in url or bool(SEARCH_TERM.search(url))
+
+
+# ---------------------------------------------------------------- addresses a model suggested
+
+@functools.lru_cache(maxsize=256)
+def _public_host(host: str) -> bool:
+    try:
+        return all(ipaddress.ip_address(i[4][0]).is_global for i in socket.getaddrinfo(host, 443))
+    except (OSError, ValueError):
+        return False
+
+
+def public_url(url: str) -> bool:
+    """https on a public host only."""
+    if "\\" in url or any(c <= " " for c in url):
+        return False
+    try:
+        parts = urlsplit(url)
+        host = parts.hostname or ""
+        return parts.scheme == "https" and "." in host and not parts.username and _public_host(host)
+    except ValueError:
+        return False
 
 
 # ---------------------------------------------------------------- hidden Chrome (shared, one tab)
@@ -123,6 +158,10 @@ class SiteScraper(BaseScraper):
         url = self.config.get("url")
         if not url:
             raise ScrapeError(f"{self.company_name}: ats_config needs a url")
+        term = quote(self.config.get("query") or "intern", safe="")
+        if self.config.get("query"):
+            url = SEARCH_TERM.sub(lambda m: term, url)
+        url = url.replace("{query}", term)
         return url.replace("{page}", str(n + 1)).replace("{offset}", str(n * int(self.config.get("page_size", 0))))
 
     def load(self, n: int) -> str | None:
@@ -142,12 +181,21 @@ class SiteScraper(BaseScraper):
         raise NotImplementedError(f"{type(self).__name__} must implement parse()")
 
     def row_ok(self, row: dict) -> bool:
-        return bool(row.get("title") and row.get("url"))
+        url = row.get("url", "")
+        if self.config.get("public_only") and not public_url(url):
+            return False
+        hosts = self.config.get("hosts")  # the job-link hosts the user approved
+        if hosts and urlsplit(url).hostname not in hosts:
+            return False
+        return bool(row.get("title") and url)
 
     # ---- helpers for subclasses
     def render(self, url: str) -> str:
         """HTML of the page after its scripts have run, from the shared hidden Chrome."""
         try:
+            checked = self.config.get("public_only")
+            if checked and not public_url(url):
+                raise ValueError("not a public https address")
             pg = _tab()
             pg.goto(url, wait_until="domcontentloaded", timeout=45000)
             wait = self.config.get("wait_selector") or self.config.get("link_selector")
@@ -157,8 +205,14 @@ class SiteScraper(BaseScraper):
                 except Exception:
                     pass  # an empty page is reported as "no jobs" by fetch()
             else:
-                pg.wait_for_load_state("networkidle", timeout=15000)
-            return pg.content()
+                try:
+                    pg.wait_for_load_state("networkidle", timeout=15000)
+                except Exception:
+                    pass  # pages with constant background requests are still readable
+            html = pg.content()
+            if checked and not public_url(pg.url):
+                raise ValueError("redirected to a private or non-https address")
+            return html
         except Exception as exc:
             close_browser()  # Chrome died or hung: the next company gets a fresh one
             raise ScrapeError(f"{self.company_name} browser load failed: {exc}")
@@ -220,7 +274,7 @@ class SiteScraper(BaseScraper):
             if fresh == 0:
                 break
         if not out:
-            raise ScrapeError(f"{self.company_name}: the page had no jobs (its layout may have changed)")
+            raise EmptyResult(f"{self.company_name}: the page had no jobs (its layout may have changed)")
         return out
 
 

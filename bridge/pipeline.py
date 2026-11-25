@@ -29,6 +29,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -178,6 +179,15 @@ def apply_prefs(settings: dict) -> None:
     if settings.get("priority_regex"):
         NYC_RE = newsletter.NY_RE = re.compile(settings["priority_regex"], re.I)
     newsletter.INCLUDE_REMOTE = settings.get("include_remote", True)
+    # Read by the patched scrapers and ApplyPilot, which all run as child processes.
+    for name, value in (("JOB_SEARCH_QUERIES", "|".join(settings.get("search_queries") or [])),
+                        ("JOB_PAGE_REGEX", settings.get("page_regex", "")),
+                        ("JOB_TARGET", settings.get("job_target", "")),
+                        ("JOB_LOCATIONS", "; ".join(settings.get("job_locations") or []))):
+        if value:
+            os.environ[name] = value
+        else:
+            os.environ.pop(name, None)
 
 
 def is_software(title: str, settings: dict | None = None) -> bool:
@@ -266,7 +276,7 @@ def scan_us_fallback(ledger: dict, settings: dict, t: datetime) -> list[dict]:
         return []
     rows.sort(key=lambda r: r.get("posted_at") or "", reverse=True)
     cap = settings.get("us_fallback_max_queue", 10)
-    log(f"{len(rows)} new US internship(s) outside NY/DC (keeping up to {cap} as backups)")
+    log(f"{len(rows)} new US job(s) outside NY/DC (keeping up to {cap} as backups)")
     return rows[:cap]
 
 
@@ -294,7 +304,7 @@ def enqueue(conn: sqlite3.Connection, rows: list[dict], ledger: dict, t: datetim
         ledger["queued"][row["url"]] = t.isoformat()
         ledger.setdefault("meta", {})[row["url"]] = {
             "company": row["company"], "title": row["title"], "location": row.get("location", ""),
-            "tier": row.get("tier", "local")}
+            "tier": row.get("tier", "local"), "posted_at": row.get("posted_at", "")}
     conn.commit()
     return added
 
@@ -494,6 +504,7 @@ def requeue_failed(ledger: dict, t: datetime, db: Path = APPLYPILOT_DB) -> list[
             if cur.rowcount:
                 ledger["done"].remove(url)
                 ledger["queued"][url] = t.isoformat()
+                ledger.get("meta", {}).get(url, {}).pop("posted_at", None)  # an explicit retry skips the age limit
                 redo.append(url)
         conn.commit()
     finally:
@@ -522,6 +533,7 @@ def restart_requested(ledger: dict, t: datetime, path: Path = RETRY_FILE, db: Pa
                 if url in ledger["done"]:
                     ledger["done"].remove(url)
                 ledger["queued"][url] = t.isoformat()  # fresh window
+                ledger.get("meta", {}).get(url, {}).pop("posted_at", None)
                 redo.append(url)
         conn.commit()
     finally:
@@ -587,12 +599,17 @@ def apply_route(url: str, history: list[dict] | None = None, fetch=None) -> tupl
     """("auto", "") when the agent is expected to finish this form, else ("manual", reason)."""
     if history is None:
         history = [json.loads(l) for l in APPS.read_text().splitlines()] if APPS.exists() else []
-    if "greenhouse.io" in url:
+    host = urllib.parse.urlsplit(url).hostname or ""
+
+    def on(domain: str) -> bool:
+        return host == domain or host.endswith("." + domain)
+
+    if on("greenhouse.io"):
         why = greenhouse_blocker(url, fetch)
         return ("manual", why) if why else ("auto", "")
-    if any(h in url for h in SCRIPTED_ATS):
+    if any(on(h) for h in SCRIPTED_ATS):
         return "auto", ""
-    if "jobs.lever.co" in url:  # Lever forms often sit behind a CAPTCHA; trust it only after a success
+    if on("jobs.lever.co"):  # Lever forms often sit behind a CAPTCHA; trust it only after a success
         if any("jobs.lever.co" in h["url"] and h["outcome"] == "applied" for h in history):
             return "auto", ""
         return "manual", "Lever forms usually need a CAPTCHA, which the agent cannot pass"
@@ -630,6 +647,14 @@ def cover_pdf(url: str, db: Path = APPLYPILOT_DB) -> str:
     return str(pdf) if pdf.exists() else ""
 
 
+def young_enough(url: str, meta: dict, settings: dict, t: datetime) -> bool:
+    """Still within the posting-age limit at the moment of applying."""
+    limit = settings.get("posted_within_minutes", settings["max_age_minutes"])
+    if "myworkdayjobs.com" in url:  # Workday only says which day ("Posted Yesterday"), so allow that day
+        limit += 1440
+    return posted_recently(meta, {"posted_within_minutes": limit}, t)
+
+
 def pick_to_apply(ledger: dict, settings: dict, t: datetime) -> list[str]:
     """Freshest queued URLs that are still young enough, within the hourly budget."""
     cutoff = t - timedelta(minutes=settings["max_age_minutes"])
@@ -638,6 +663,7 @@ def pick_to_apply(ledger: dict, settings: dict, t: datetime) -> list[str]:
     fresh = [
         (url, ts) for url, ts in list(ledger["queued"].items())
         if url not in done and datetime.fromisoformat(ts) >= cutoff
+        and young_enough(url, ledger.get("meta", {}).get(url, {}), settings, t)
         and is_software(ledger.get("meta", {}).get(url, {}).get("title", ""), settings)
     ]
     # New York roles first, then DC/remote, then the rest of the US; newest first within each group.
@@ -755,7 +781,7 @@ def queue_rows(rows: list[dict], ledger: dict, t: datetime) -> None:
         finally:
             conn.close()
         save_ledger(ledger)
-    log(f"Queued {len(rows)} internship(s) to apply to")
+    log(f"Queued {len(rows)} job(s) to apply to")
 
 
 def scan_pass(settings: dict, ledger: dict) -> None:
@@ -787,14 +813,15 @@ def scan_pass(settings: dict, ledger: dict) -> None:
         log(f"Seed run: recorded {len(ledger['seen'])} postings, applying to none")
         save_ledger(ledger)
         return
-    log(f"{len(fresh)} new NYC/DC matching internship(s) in this sweep")
+    log(f"{len(fresh)} new NYC/DC matching job(s) in this sweep")
     queue_rows(fresh, ledger, t)
     # Reach beyond NYC/DC only when there are not enough local roles to fill the hour's quota.
     if settings.get("us_fallback", True) and sum(is_nyc(r.get("location", "")) for r in fresh) < hourly_budget(ledger, settings, t):
         more = select_fresh(local_rows, ledger, settings, t, tier="us") + scan_us_fallback(ledger, settings, t)
         queue_rows(more, ledger, t)
     try:
-        queue_rows(newsletter.select(newsletter.fetch_items(datetime.now()), ledger, t), ledger, t)
+        if settings.get("newsletter", True):
+            queue_rows(newsletter.select(newsletter.fetch_items(datetime.now()), ledger, t), ledger, t)
     except Exception as e:
         alert(ledger, "newsletter", "Newsletter check failed",
               f"Could not read Direct Consideration ({type(e).__name__}). Click to open the log.",
@@ -923,8 +950,9 @@ def main(argv: list[str] | None = None) -> int:
                     more["rows"] += select_fresh(local_rows, scratch, settings, t, tier="us")
                     more["rows"] += scan_us_fallback(scratch, settings, t)
                 try:
-                    items = newsletter.select(newsletter.fetch_items(datetime.now()), scratch, t)
-                    log(f"{len(items)} new matching internship(s) from the newsletter")
+                    items = (newsletter.select(newsletter.fetch_items(datetime.now()), scratch, t)
+                             if settings.get("newsletter", True) else [])
+                    log(f"{len(items)} new matching job(s) from the newsletter")
                     more["rows"] += items
                 except Exception as e:
                     more["newsletter_error"] = type(e).__name__
@@ -935,7 +963,7 @@ def main(argv: list[str] | None = None) -> int:
         bg = threading.Thread(target=scan_rest, name="scan-rest")
         bg.start()
         ledger["last_slot"] = hour_slot(t)
-        log(f"{len(fresh)} new NYC/DC matching internship(s) posted in the last "
+        log(f"{len(fresh)} new NYC/DC matching job(s) posted in the last "
             f"{settings.get('posted_within_minutes', 70)} minutes; the rest-of-US scan continues in the background")
     elif not args.apply_only:
         log("Already scanned this hour; only working through the queue")
@@ -1071,7 +1099,8 @@ def main(argv: list[str] | None = None) -> int:
             has_resume, fit = job_state(url)
             if not has_resume:
                 exhausted = ledger.get("score_retries", {}).get(url, 0) >= 3
-                if (fit is not None and fit > 0) or exhausted:
+                # A good score without a resume means tailoring failed: leave it queued to be retried.
+                if (fit is not None and 0 < fit < settings["min_score"]) or exhausted:
                     log(f"Skipped (scored below min_score or scoring kept failing): {meta.get('title') or url}")
                     record_application(url, meta, "skipped", "scored below min_score or scoring failed")
                     ledger["done"].append(url)
@@ -1141,7 +1170,7 @@ def main(argv: list[str] | None = None) -> int:
                   f"Could not read Direct Consideration ({more['newsletter_error']}). Click to open the log.",
                   "file", str(LOG))
         if more["rows"]:
-            log(f"{len(more['rows'])} more internship(s) from the rest-of-US scan / newsletter; applying to those next")
+            log(f"{len(more['rows'])} more job(s) from the rest-of-US scan / newsletter; applying to those next")
             rc = work(more["rows"]) or rc
     return rc
 

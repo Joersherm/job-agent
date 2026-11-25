@@ -293,7 +293,7 @@ index 341a11a..74b7657 100644
                              target_url=target_url,
                              min_score=min_score,
 diff --git a/src/applypilot/apply/prompt.py b/src/applypilot/apply/prompt.py
-index 37c3790..d46ba95 100644
+index 37c3790..0c1308e 100644
 --- a/src/applypilot/apply/prompt.py
 +++ b/src/applypilot/apply/prompt.py
 @@ -5,6 +5,7 @@ how to fill out a job application form using Playwright MCP tools. All
@@ -304,21 +304,54 @@ index 37c3790..d46ba95 100644
  import logging
  import os
  import shutil
-@@ -109,6 +110,13 @@ def _build_location_check(profile: dict, search_config: dict) -> str:
+@@ -108,7 +109,37 @@ def _build_location_check(profile: dict, search_config: dict) -> str:
+         city_list = ", ".join(accept_patterns)
      else:
          city_list = primary_city
- 
+-
++    chosen = [p for p in os.environ.get("JOB_LOCATIONS", "").split("; ") if p]  # from settings.json
++    places = [p for p in chosen if not p.startswith("remote (")]
++    remote = next((p[len("remote ("):-1] for p in chosen if p.startswith("remote (")), None)
++    no_remote = bool(chosen) and remote is None
++    target = os.environ.get("JOB_TARGET", "")
++    noun = "internship" if not target or "internship" in target else "job"
++
 +    if os.environ.get("APPLYPILOT_ANY_US") == "1":
-+        return """== LOCATION CHECK ==
-+The candidate is applying to internships anywhere in the United States, for an in-person summer internship.
++        return f"""== LOCATION CHECK ==
++The candidate is applying to {noun}s anywhere in the United States, including in person.
 +- Any city in the United States (onsite, hybrid or remote) -> ELIGIBLE. Apply.
-+- Questions about relocating, or working onsite in the job's city for the internship -> answer Yes.
++- Questions about relocating, or working onsite in the job's city for the {noun} -> answer Yes.
 +- Only reject roles outside the United States with no remote option: output RESULT:FAILED:not_eligible_location
++{"- The candidate does not want remote work: a fully remote role -> RESULT:FAILED:not_eligible_location" if no_remote else ""}
 +Do not reject a role just because it is in a city far from the candidate's home."""
++    if chosen:
++        if remote is None:
++            remote_rule = "Fully remote -> NOT ELIGIBLE (the candidate does not want remote work)."
++        elif remote == "anywhere":
++            remote_rule = "Fully remote -> ELIGIBLE."
++        else:
++            remote_rule = f"Fully remote -> ELIGIBLE only if open to people in {remote}; otherwise NOT ELIGIBLE."
++        onsite_rule = (f"Hybrid or onsite in {'; '.join(places)} (including cities inside a listed state or country) "
++                       "-> ELIGIBLE. Hybrid or onsite anywhere else -> NOT ELIGIBLE."
++                       if places else "Any hybrid or onsite role -> NOT ELIGIBLE.")
++        return f"""== LOCATION CHECK (do this FIRST before any form) ==
++Read the job page. Determine the work arrangement. Then decide:
++- {remote_rule}
++- {onsite_rule}
++- NOT ELIGIBLE -> stop immediately and output RESULT:FAILED:not_eligible_location
++- Cannot determine location -> Continue applying and answer screening questions honestly."""
      return f"""== LOCATION CHECK (do this FIRST before any form) ==
  Read the job page. Determine the work arrangement. Then decide:
  - "Remote" or "work from anywhere" -> ELIGIBLE. Apply.
-@@ -162,6 +170,96 @@ Decision tree:
+@@ -155,13 +186,103 @@ ${floor} {currency} is the FLOOR. Never go below it. But don't always use it eit
+ 
+ Decision tree:
+ 1. Job posting shows a range (e.g. "$120K-$160K")? -> Answer with the MIDPOINT ($140K).
+-2. Title says Senior, Staff, Lead, Principal, Architect, or level II/III/IV? -> Minimum $110K {currency}. Use midpoint of posted range if higher.
++2. Senior or higher-level title? -> Use the midpoint of the posted range if it is above the floor.
+ 3. {convert_line}
+ 4. No salary info anywhere? -> Use ${floor} {currency}.
+ 5. Asked for a range? -> Give posted midpoint minus 10% to midpoint plus 10%. No posted range? -> "${range_min}-${range_max} {currency}".
  6. Hourly rate? -> Divide your annual answer by 2080. ({hourly_line})"""
  
  
@@ -415,16 +448,22 @@ index 37c3790..d46ba95 100644
  def _build_screening_section(profile: dict) -> str:
      """Build the screening questions guidance section."""
      personal = profile["personal"]
-@@ -173,7 +271,7 @@ def _build_screening_section(profile: dict) -> str:
+@@ -173,12 +294,12 @@ def _build_screening_section(profile: dict) -> str:
  
      return f"""== SCREENING QUESTIONS (be strategic) ==
  Hard facts -> answer truthfully from the profile. No guessing. This includes:
 -  - Location/relocation: lives in {city}, cannot relocate
-+  - Location/relocation: lives in {city}. For nationwide internship runs (see LOCATION CHECK) say Yes to relocating or working onsite for the internship; otherwise cannot relocate
++  - Location/relocation: lives in {city}. Answer Yes to working in or relocating to a place only if the LOCATION CHECK above makes the role eligible; otherwise answer No
    - Work authorization: {work_auth.get('legally_authorized_to_work', 'see profile')}
    - Citizenship, clearance, licenses, certifications: answer from profile only
    - Criminal/background: answer from profile only
-@@ -480,7 +578,8 @@ def build_prompt(job: dict, tailored_resume: str,
+ 
+-Skills and tools -> be confident. This candidate is a {target_role} with {years} years experience. If the question asks "Do you have experience with [tool]?" and it's in the same domain (DevOps, backend, ML, cloud, automation), answer YES. Software engineers learn tools fast. Don't sell short.
++Skills and tools -> This candidate is a {target_role} with {years} years experience. Answer Yes to experience with a tool, skill, license or certification only if the resume or profile shows it; otherwise answer truthfully.
+ 
+ Open-ended questions ("Why do you want this role?", "Tell us about yourself", "What interests you?") -> Write 2-3 sentences. Be specific to THIS job. Reference something from the job description. Connect it to a real achievement from the resume. No generic fluff. No "I am passionate about..." -- sound like a real person.
+ 
+@@ -480,7 +601,8 @@ def build_prompt(job: dict, tailored_resume: str,
      profile_summary = _build_profile_summary(profile)
      location_check = _build_location_check(profile, search_config)
      salary_section = _build_salary_section(profile)
@@ -434,7 +473,16 @@ index 37c3790..d46ba95 100644
      hard_rules = _build_hard_rules(profile)
      captcha_section = _build_captcha_section()
  
-@@ -558,7 +657,7 @@ If something unexpected happens and these instructions don't cover it, figure it
+@@ -545,7 +667,7 @@ If something unexpected happens and these instructions don't cover it, figure it
+ - NEVER grant camera, microphone, screen sharing, or location permissions. If a site requests them -> RESULT:FAILED:unsafe_permissions
+ - NEVER do video/audio verification, selfie capture, ID photo upload, or biometric anything -> RESULT:FAILED:unsafe_verification
+ - NEVER set up a freelancing profile (Mercor, Toptal, Upwork, Fiverr, Turing, etc.). These are contractor marketplaces, not job applications -> RESULT:FAILED:not_a_job_application
+-- NEVER agree to hourly/contract rates, availability calendars, or "set your rate" flows. You are applying for FULL-TIME salaried positions only.
++- NEVER enter freelance marketplace "set your rate" or availability-calendar flows. Hourly or part-time employee roles are fine: use the SALARY section.
+ - NEVER install browser extensions, download executables, or run assessment software.
+ - NEVER enter payment info, bank details, or SSN/SIN.
+ - NEVER click "Allow" on any browser permission popup. Always deny/block.
+@@ -558,7 +680,7 @@ If something unexpected happens and these instructions don't cover it, figure it
  {screening_section}
  
  == STEP-BY-STEP ==
@@ -572,10 +620,18 @@ index 2b87b67..adde99f 100644
      log.info("PDF generated: %s", out)
      return out
 diff --git a/src/applypilot/scoring/scorer.py b/src/applypilot/scoring/scorer.py
-index 97692d5..62d98f8 100644
+index 97692d5..3187bee 100644
 --- a/src/applypilot/scoring/scorer.py
 +++ b/src/applypilot/scoring/scorer.py
-@@ -32,13 +32,13 @@ SCORING CRITERIA:
+@@ -7,6 +7,7 @@ profile and resume file.
+ 
+ import json
+ import logging
++import os
+ import re
+ import time
+ from datetime import datetime, timezone
+@@ -32,13 +33,23 @@ SCORING CRITERIA:
  IMPORTANT FACTORS:
  - Weight technical skills heavily (programming languages, frameworks, tools)
  - Consider transferable experience (automation, scripting, API work)
@@ -588,14 +644,41 @@ index 97692d5..62d98f8 100644
  KEYWORDS: [comma-separated ATS keywords from the job description that match or could match the candidate]
 -REASONING: [2-3 sentences explaining the score]"""
 +REASONING: [2-3 sentences explaining the score. Name the specific jobs and projects from the resume (e.g. a side project or a current internship) whose work best fits what this role requires]"""
++
++
++def _target_note() -> str:
++    """The user's chosen field, roles and level (JOB_TARGET, set from settings.json)."""
++    target = os.environ.get("JOB_TARGET", "")
++    if not target:
++        return ""
++    return (f"\n\nWHAT THE CANDIDATE IS LOOKING FOR: {target}\n"
++            "This overrides the factors above: weigh the skills, tools, licenses and certifications that matter in "
++            "this field, not only programming ones. Score 1-3 if the posting is not one of these roles and levels.")
  
  
  def _parse_score_response(response: str) -> dict:
+@@ -88,7 +99,7 @@ def score_job(resume_text: str, job: dict) -> dict:
+     )
+ 
+     messages = [
+-        {"role": "system", "content": SCORE_PROMPT},
++        {"role": "system", "content": SCORE_PROMPT + _target_note()},
+         {"role": "user", "content": f"RESUME:\n{resume_text}\n\n---\n\nJOB POSTING:\n{job_text}"},
+     ]
+ 
 diff --git a/src/applypilot/scoring/tailor.py b/src/applypilot/scoring/tailor.py
-index 352fb5f..d5514f1 100644
+index 352fb5f..83e2d42 100644
 --- a/src/applypilot/scoring/tailor.py
 +++ b/src/applypilot/scoring/tailor.py
-@@ -93,9 +93,21 @@ SKILLS: Reorder each category so the job's must-haves appear first.
+@@ -11,6 +11,7 @@ to avoid apologetic spirals.
+ 
+ import json
+ import logging
++import os
+ import re
+ import time
+ from datetime import datetime, timezone
+@@ -93,9 +94,21 @@ SKILLS: Reorder each category so the job's must-haves appear first.
  
  Reframe EVERY bullet for this role. Same real work, different angle. Every bullet must be reworded. Never copy verbatim.
  
@@ -619,7 +702,7 @@ index 352fb5f..d5514f1 100644
  
  ## VOICE:
  - Write like a real engineer. Short, direct.
-@@ -107,14 +119,14 @@ BULLETS: Strong verb + what you built + quantified impact. Vary verbs (Built, De
+@@ -107,14 +120,14 @@ BULLETS: Strong verb + what you built + quantified impact. Vary verbs (Built, De
  
  ## HARD RULES:
  - Do NOT invent work, companies, degrees, or certifications
@@ -636,7 +719,7 @@ index 352fb5f..d5514f1 100644
  
  
  def _build_judge_prompt(profile: dict) -> str:
-@@ -220,6 +232,41 @@ def extract_json(raw: str) -> dict:
+@@ -220,6 +233,41 @@ def extract_json(raw: str) -> dict:
  
  # ── Resume Assembly (profile-driven header) ──────────────────────────────
  
@@ -678,7 +761,7 @@ index 352fb5f..d5514f1 100644
  def assemble_resume_text(data: dict, profile: dict) -> str:
      """Convert JSON resume data to formatted plain text.
  
-@@ -263,16 +310,31 @@ def assemble_resume_text(data: dict, profile: dict) -> str:
+@@ -263,16 +311,31 @@ def assemble_resume_text(data: dict, profile: dict) -> str:
      lines.append(sanitize_text(data["summary"]))
      lines.append("")
  
@@ -713,16 +796,19 @@ index 352fb5f..d5514f1 100644
          lines.append(sanitize_text(entry.get("header", "")))
          if entry.get("subtitle"):
              lines.append(sanitize_text(entry["subtitle"]))
-@@ -282,7 +344,7 @@ def assemble_resume_text(data: dict, profile: dict) -> str:
+@@ -281,8 +344,9 @@ def assemble_resume_text(data: dict, profile: dict) -> str:
+         lines.append("")
  
      # Projects
-     lines.append("PROJECTS")
+-    lines.append("PROJECTS")
 -    for entry in data.get("projects", []):
-+    for entry in sort_reverse_chronological(data.get("projects", []), base):
++    if data.get("projects"):
++        lines.append("PROJECTS")
++    for entry in sort_reverse_chronological(data.get("projects") or [], base):
          lines.append(sanitize_text(entry.get("header", "")))
          if entry.get("subtitle"):
              lines.append(sanitize_text(entry["subtitle"]))
-@@ -375,6 +437,9 @@ def tailor_resume(
+@@ -375,6 +439,9 @@ def tailor_resume(
          f"LOCATION: {job.get('location', 'N/A')}\n\n"
          f"DESCRIPTION:\n{(job.get('full_description') or '')[:6000]}"
      )
@@ -732,7 +818,17 @@ index 352fb5f..d5514f1 100644
  
      report: dict = {
          "attempts": 0, "validator": None, "judge": None,
-@@ -400,7 +465,7 @@ def tailor_resume(
+@@ -384,6 +451,9 @@ def tailor_resume(
+     tailored = ""
+     client = get_client()
+     tailor_prompt_base = _build_tailor_prompt(profile)
++    if os.environ.get("JOB_TARGET"):
++        tailor_prompt_base += (f"\n\nTARGET: {os.environ['JOB_TARGET']}\nName the skill categories to fit this "
++                               "field instead of software categories where they do not apply.")
+ 
+     for attempt in range(max_retries + 1):
+         report["attempts"] = attempt + 1
+@@ -400,7 +470,7 @@ def tailor_resume(
              {"role": "user", "content": f"ORIGINAL RESUME:\n{resume_text}\n\n---\n\nTARGET JOB:\n{job_text}\n\nReturn the JSON:"},
          ]
  
@@ -741,20 +837,67 @@ index 352fb5f..d5514f1 100644
  
          # Parse JSON from response
          try:
-@@ -409,6 +474,8 @@ def tailor_resume(
+@@ -409,8 +479,10 @@ def tailor_resume(
              avoid_notes.append("Output was not valid JSON. Return ONLY a JSON object, nothing else.")
              continue
  
 +        report["matched_keywords"] = data.get("matched_keywords", [])
 +
          # Layer 1: Validate JSON fields
-         validation = validate_json_fields(data, profile, mode=validation_mode)
+-        validation = validate_json_fields(data, profile, mode=validation_mode)
++        validation = validate_json_fields(data, profile, mode=validation_mode, resume_text=resume_text)
          report["validator"] = validation
+ 
+         if not validation["passed"]:
 diff --git a/src/applypilot/scoring/validator.py b/src/applypilot/scoring/validator.py
-index abb8f89..7a0f6c7 100644
+index abb8f89..3624560 100644
 --- a/src/applypilot/scoring/validator.py
 +++ b/src/applypilot/scoring/validator.py
-@@ -143,7 +143,8 @@ def validate_json_fields(data: dict, profile: dict, mode: str = "normal") -> dic
+@@ -65,7 +65,7 @@ FABRICATION_WATCHLIST: set[str] = {
+     # Frameworks for wrong languages
+     "spring", "django", "rails", "angular", "vue", "svelte",
+     # Hard lies: certifications can't be stretched
+-    "certif", "certified", "pmp", "scrum master", "aws certified",
++    "certification", "certifications", "certified", "pmp", "scrum master", "aws certified",
+ }
+ 
+ REQUIRED_SECTIONS: set[str] = {"SUMMARY", "TECHNICAL SKILLS", "EXPERIENCE", "PROJECTS", "EDUCATION"}
+@@ -96,7 +96,7 @@ def sanitize_text(text: str) -> str:
+ 
+ # ── JSON Field Validation ─────────────────────────────────────────────────
+ 
+-def validate_json_fields(data: dict, profile: dict, mode: str = "normal") -> dict:
++def validate_json_fields(data: dict, profile: dict, mode: str = "normal", resume_text: str = "") -> dict:
+     """Validate individual JSON fields from an LLM-generated tailored resume.
+ 
+     Args:
+@@ -114,7 +114,7 @@ def validate_json_fields(data: dict, profile: dict, mode: str = "normal") -> dic
+     warnings: list[str] = []
+ 
+     # Required keys — always checked regardless of mode
+-    for key in ("title", "summary", "skills", "experience", "projects", "education"):
++    for key in ("title", "summary", "skills", "experience", "education"):  # not every resume has projects
+         if key not in data or not data[key]:
+             errors.append(f"Missing required field: {key}")
+     if errors:
+@@ -126,10 +126,15 @@ def validate_json_fields(data: dict, profile: dict, mode: str = "normal") -> dic
+     # Skills: check for fabrication (always enforced)
+     if isinstance(data["skills"], dict):
+         skills_text = " ".join(str(v) for v in data["skills"].values()).lower()
++        real = (resume_text + " " + " ".join(_build_skills_set(profile))).lower()
++
++        def has(term: str, text: str) -> bool:  # whole terms only: "rust" is not in "trust"
++            return bool(re.search(rf"(?<!\w){re.escape(term)}(?!\w)", text))
++
+         for fake in FABRICATION_WATCHLIST:
+             if len(fake) <= 2:
+                 continue
+-            if fake in skills_text:
++            if has(fake, skills_text) and not has(fake, real):
+                 errors.append(f"Fabricated skill: '{fake}'")
+ 
+     # Experience: preserved companies must be present (always enforced)
+@@ -143,13 +148,14 @@ def validate_json_fields(data: dict, profile: dict, mode: str = "normal") -> dic
                  for e in data["experience"]
              )
              if not has_company:
@@ -764,7 +907,14 @@ index abb8f89..7a0f6c7 100644
          for entry in data["experience"]:
              for b in entry.get("bullets", []):
                  all_text_parts.append(b)
-@@ -326,10 +327,10 @@ def validate_cover_letter(text: str, mode: str = "normal") -> dict:
+ 
+     # Projects: collect bullets
+-    if isinstance(data["projects"], list):
++    if isinstance(data.get("projects"), list):
+         for entry in data["projects"]:
+             for b in entry.get("bullets", []):
+                 all_text_parts.append(b)
+@@ -326,10 +332,10 @@ def validate_cover_letter(text: str, mode: str = "normal") -> dict:
  
      # 3. Word count
      words = len(text.split())

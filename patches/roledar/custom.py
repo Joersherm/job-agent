@@ -8,6 +8,7 @@ Use them from companies.yaml either as `ats: amazon` (and so on) or `ats: site` 
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from datetime import datetime, timezone
@@ -44,7 +45,7 @@ class IbmScraper(SiteScraper):
             return None  # one request returns the newest 100
         return json.dumps(self.get_json("https://www-api.ibm.com/search/api/v2", method="POST", json={
             "appId": "careers", "scopes": ["careers2"], "size": 100, "from": 0, "lang": "zz", "all": False,
-            "query": {"bool": {"must": [{"simple_query_string": {"query": "intern", "fields": ["title^3"]}}]}},
+            "query": {"bool": {"must": [{"simple_query_string": {"query": self.config.get("query", "intern"), "fields": ["title^3"]}}]}},
             "sort": [{"dcdate": "desc"}],
             "_source": ["title", "url", "dcdate", "field_keyword_05", "field_keyword_19"],
             "p": "https://www.ibm.com/careers/search"}))
@@ -65,8 +66,8 @@ class GoldmanScraper(SiteScraper):
         if n:
             return None  # early-career only: the experienced-hire search is all VP/Associate noise
         q = ('{ roleSearch(searchQueryInput:{page:{pageNumber:0,pageSize:100},sort:{sortStrategy:POSTED_DATE,'
-             'sortOrder:DESC},filters:[],experiences:[EARLY_CAREER],searchTerm:"intern"}){items{roleId jobTitle '
-             'locations{city state country} externalSource{sourceId}}}}')
+             'sortOrder:DESC},filters:[],experiences:[EARLY_CAREER],searchTerm:%s}){items{roleId jobTitle '
+             'locations{city state country} externalSource{sourceId}}}}') % json.dumps(self.config.get("query", "intern"))
         return json.dumps(self.get_json("https://api-higher.gs.com/gateway/api/v1/graphql",
                                         method="POST", json={"query": q}))
 
@@ -93,7 +94,8 @@ class GoogleScraper(SiteScraper):
         try:
             r = requests.get(self.BASE, headers=UA, timeout=self.TIMEOUT_SECONDS, params={
                 "q": self.config.get("query", "intern"), "location": "United States",
-                "target_level": "INTERN_AND_APPRENTICE", "page": n + 1})
+                "page": n + 1, **({"target_level": "INTERN_AND_APPRENTICE"}
+                                  if "intern" in self.config.get("query", "intern") else {})})
             r.raise_for_status()
         except requests.RequestException as exc:
             raise ScrapeError(f"Google fetch failed on page {n + 1}: {exc}")
@@ -195,7 +197,7 @@ class AtlassianScraper(SiteScraper):
         return [{"title": j.get("title", ""), "url": (j.get("portalJobPost") or {}).get("portalUrl", ""),
                  "location": "; ".join(l.split(" - ")[0] for l in j.get("locations") or []),
                  "department": j.get("category", "")}
-                for j in json.loads(raw) if re.search(r"\bintern(ship)?s?\b", j.get("title", ""), re.I)]
+                for j in json.loads(raw) if re.search(os.environ.get("JOB_PAGE_REGEX") or r"\bintern(ship)?s?\b", j.get("title", ""), re.I)]
 
 
 class UberScraper(GenericSiteScraper):

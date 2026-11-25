@@ -31,8 +31,8 @@ INTERN_RE = re.compile(r"\bintern(ship)?s?\b|\bco-?op\b", re.I)
 
 
 PAUSE = 1.0          # seconds between Workday requests
-BLOCK_LIMIT = 6      # this many requests in a row refused => stop hitting Workday for this run
-_state = {"last": 0.0, "refused": 0, "pw": None, "browser": None, "pages": {}}
+BLOCK_LIMIT = 6      # this many employers in a row refusing => stop hitting Workday for this run
+_state = {"last": 0.0, "refused": set(), "pw": None, "browser": None, "pages": {}}
 
 
 class _Reply:
@@ -106,7 +106,7 @@ def _page_for(host: str, tenant: str, site: str):
 
 def _fetch(host: str, tenant: str, site: str, path: str, body: dict | None = None):
     """Same-origin fetch inside Chrome. POST when body is given, else GET."""
-    if _state["refused"] >= BLOCK_LIMIT:
+    if len(_state["refused"]) >= BLOCK_LIMIT:
         raise ScrapeError("Workday is refusing this computer; skipped to let it cool down")
     time.sleep(max(0.0, _state["last"] + PAUSE - time.time()))
     script = """async ([url, body]) => { const r = await fetch(url, {signal: AbortSignal.timeout(30000), method: body ? 'POST' : 'GET',
@@ -128,10 +128,10 @@ def _fetch(host: str, tenant: str, site: str, path: str, body: dict | None = Non
                 offline = re.search(r"ERR_(INTERNET_DISCONNECTED|NAME_NOT_RESOLVED|ADDRESS_UNREACHABLE|NETWORK_CHANGED|"
                                     r"CONNECTION_(RESET|CLOSED|TIMED_OUT)|TIMED_OUT)", str(exc))
                 if not offline:  # a dropped network is not Workday refusing us: do not trip the cooldown
-                    _state["refused"] += 1
+                    _state["refused"].add(host)
                 raise ScrapeError(f"Workday browser fetch failed for {tenant!r}: {exc}")
     _state["last"] = time.time()
-    _state["refused"] = _state["refused"] + 1 if status == 429 else 0
+    _state["refused"].add(host) if status == 429 else _state["refused"].clear()
     return _Reply(status, text)
 
 
@@ -158,6 +158,7 @@ class WorkdayScraper(BaseScraper):
         query = self.config.get("search", "intern")
         api = f"https://{host}/wday/cxs/{tenant}/{site}/jobs"
         postings: list[JobPosting] = []
+        wanted = re.compile(os.environ.get("JOB_PAGE_REGEX") or INTERN_RE.pattern, re.I)
         for page in range(MAX_PAGES):
             try:
                 resp = _fetch(host, tenant, site, "/jobs",
@@ -173,7 +174,7 @@ class WorkdayScraper(BaseScraper):
                 if not title or not path:
                     continue
                 location = (job.get("locationsText") or "").strip()
-                if re.fullmatch(r"\d+ Locations?", location) and INTERN_RE.search(title):
+                if re.fullmatch(r"\d+ Locations?", location) and wanted.search(title):
                     location = self._all_locations(host, tenant, site, path) or location
                 postings.append(JobPosting(
                     company=self.company_name, title=title,
@@ -181,8 +182,8 @@ class WorkdayScraper(BaseScraper):
                     location=location,
                     department="", posted_at=_posted_at(job.get("postedOn", "")),
                 ))
-            # Results are relevance-ranked: once a whole page has no intern/co-op title, stop paging.
-            if len(jobs) < PAGE or not any(INTERN_RE.search(j.get("title") or "") for j in jobs):
+            # Results are relevance-ranked: once a whole page has no wanted title, stop paging.
+            if len(jobs) < PAGE or not any(wanted.search(j.get("title") or "") for j in jobs):
                 break
         return postings
 

@@ -147,6 +147,10 @@ def gather(log=print, failed: list | None = None) -> list[dict]:
 
 def run(log=print, notify=None) -> list[dict]:
     """Find postings not reported before. notify(title, message, kind, arg) raises the popup."""
+    cfg = ROOT / "settings.json"
+    if cfg.exists() and not json.loads(cfg.read_text()).get("watchlist", True):
+        log("Watchlist: turned off in settings.json")
+        return []
     state = json.loads(STATE.read_text()) if STATE.exists() else {"seen": {}}
     first = not state["seen"]
     failed: list[str] = []

@@ -12,6 +12,7 @@ import logging
 import multiprocessing as mp
 import os
 import queue
+import random
 import time
 
 log = logging.getLogger("scrape")
@@ -63,6 +64,8 @@ def scrape_all(companies, budget: float = BUDGET_SECONDS, target=_work) -> dict[
     for index, company in enumerate(companies):
         lanes.setdefault(lane_of(company), []).append((index, company))
 
+    for jobs in lanes.values():
+        random.shuffle(jobs)  # shortcut: random fairness; persist a resume point if lanes keep overrunning
     ctx = mp.get_context("spawn")
     out = ctx.Queue()
     workers = {name: ctx.Process(target=target, args=(jobs, out, os.getpid()), name=name, daemon=True)

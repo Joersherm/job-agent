@@ -1,6 +1,6 @@
 # Job agent
 
-An always-on agent that finds fresh internship postings and applies to them.
+An always-on agent that finds fresh job postings in the field you choose and applies to them.
 
 ```
 RoleDar  ->  bridge/pipeline.py  ->  ApplyPilot
@@ -58,18 +58,38 @@ Read the code in `vendor/` before running it. It drives a real browser and can s
 
 ## Onboarding
 
-`scripts/onboard.py` runs in two steps, and you can run it again to change your answers.
+`scripts/onboard.py` runs in three steps, and you can run it again to change your answers.
 
 1. **About you.** It starts ApplyPilot's wizard (`applypilot init`): resume, contact details, work authorization,
    salary, skills, facts the AI must not change, and your Gemini key.
-2. **What you want.** Preferred cities, remote roles, whether to include the rest of the US, applications per hour,
-   software roles only or all internships,
-   minimum fit score, auto-submit (off unless you turn it on) and the optional resume-from-commits feature.
+2. **What you want.** Your field or industry, levels (internship, entry, senior, any), all suggested positions or
+   specific ones, any number of locations, remote roles and where they must be open, minutes between scans, how many
+   hours after posting a job may still be applied to, applications per hour, minimum fit score and auto-submit (off
+   unless you turn it on). Claude suggests the positions; you can type your own.
+3. **Companies.** `scripts/find_companies.py` has Claude search the web for employers in your field, checks each public job board,
+   shows what it found with a sample job title, and adds only the ones you approve. For employers without a standard
+   job board it can try RoleDar's generic career-page reader: Claude picks the page selectors, and the company is kept
+   only if the reader then returns jobs with locations. Run it again any time.
 
-It writes `settings.json` and `vendor/roledar/locations.yaml`, keeping the previous versions as `.bak` files.
+It writes `settings.json`, `vendor/roledar/titles.yaml` and `locations.yaml`, keeping every previous version as a timestamped `.bak` file. If your search changes, the next scan only records
+current openings. To update an existing install, pull and run `./scripts/setup.sh` again, then onboarding.
 
-Limits: it searches for internships and co-ops, and the location rules assume a US search. To watch different
-companies, edit `vendor/roledar/companies.yaml`. `bridge/watchlist.py` has its own company list in the code.
+Limits:
+- Company search is not exhaustive. Employers whose jobs can't be read are listed as not added. Career-page readers
+  see only the first results page and break when a site changes its layout. Check that each match is the right company.
+- Some built-in career-page readers (for example Meta, Uber and Goldman Sachs) only cover internships or early careers
+  or a US search. The rest-of-US fallback, the newsletter and `bridge/watchlist.py` are built for US searches.
+- A job's age comes from its board. Boards that give no time count as new when first seen, and boards that give only
+  a date can be skipped by windows shorter than a day.
+- The first scan records existing postings and applies to none. So does the first scan of a newly added company.
+- A dry run still opens application forms, fills them and uploads your resume. It only skips the final submit.
+- Approve only employers whose web address you recognise. The apply agent sends them your resume and can enter your
+  job-site password at a login form.
+- Type a US state by name or code. "New York" and "Washington" mean the cities; type NY or WA for the states.
+- Scan gaps apply to the always-on scanner. A scan of hundreds of companies takes about 15 minutes or more, and more
+  search terms make it longer.
+- ApplyPilot's own wizard and parts of its resume tailoring still assume technical roles (for example "programming
+  languages"). Fill those with the skills of your field.
 
 ## Your files
 
@@ -98,4 +118,4 @@ To have project entries on your resume follow your project folders, add them to 
 Optional: `author` (for group projects), `include` (file patterns) and `must_keep` (phrases to preserve).
 This sends excerpts of those files to Claude, so list only folders you're comfortable sharing with it.
 
-Edit `settings.json` any time to fine-tune. Tests: `cd bridge && ../.venv/bin/python -m unittest -v test_pipeline test_resolve test_sync_projects`
+Edit `settings.json` any time to fine-tune. Tests: `cd bridge && ../.venv/bin/python -m unittest -v test_pipeline test_resolve test_sync_projects`, then `.venv/bin/python -m unittest discover -s scripts`

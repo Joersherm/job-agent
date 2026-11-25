@@ -1,5 +1,5 @@
 diff --git a/companies.yaml b/companies.yaml
-index 379fefd..a6a8f29 100644
+index 379fefd..b6c68aa 100644
 --- a/companies.yaml
 +++ b/companies.yaml
 @@ -1,142 +1,2259 @@
@@ -2115,7 +2115,7 @@ index 379fefd..a6a8f29 100644
 +  url: https://jobs.apple.com
 +  ats: site
 +  ats_config:
-+    url: https://jobs.apple.com/en-us/search?search=intern&sort=newest&location=united-states-USA&page={page}
++    url: https://jobs.apple.com/en-us/search?search={query}&sort=newest&location=united-states-USA&page={page}
 +    base_url: https://jobs.apple.com
 +    render: true
 +    max_pages: 6
@@ -2126,7 +2126,7 @@ index 379fefd..a6a8f29 100644
 +  ats: site
 +  ats_config:
 +    impl: uber
-+    url: https://jobs.uber.com/en/jobs/?query=intern&page={page}
++    url: https://jobs.uber.com/en/jobs/?query={query}&page={page}
 +    max_pages: 6
 +    base_url: https://jobs.uber.com
 +    render: true
@@ -2139,7 +2139,7 @@ index 379fefd..a6a8f29 100644
 +  url: https://careers.amd.com
 +  ats: site
 +  ats_config:
-+    url: https://careers.amd.com/careers-home/jobs?keywords=intern&page={page}
++    url: https://careers.amd.com/careers-home/jobs?keywords={query}&page={page}
 +    base_url: https://careers.amd.com
 +    render: true
 +    max_pages: 5
@@ -2162,7 +2162,7 @@ index 379fefd..a6a8f29 100644
 +  url: https://careers.bloomberg.com
 +  ats: site
 +  ats_config:
-+    url: https://bloomberg.avature.net/careers/SearchJobs/intern?jobOffset={offset}
++    url: https://bloomberg.avature.net/careers/SearchJobs/{query}?jobOffset={offset}
 +    page_size: 12
 +    base_url: https://bloomberg.avature.net
 +    render: true
@@ -2382,7 +2382,7 @@ index 379fefd..a6a8f29 100644
 +  url: https://jobs.intuit.com
 +  ats: site
 +  ats_config:
-+    url: https://jobs.intuit.com/search-jobs?k=intern&p={page}
++    url: https://jobs.intuit.com/search-jobs?k={query}&p={page}
 +    base_url: https://jobs.intuit.com
 +    render: true
 +    max_pages: 5
@@ -2592,10 +2592,18 @@ index e13b951..7fa5dd4 100644
          }
          for p in postings
 diff --git a/scrape.py b/scrape.py
-index 944fae5..538f59d 100644
+index 944fae5..1dd1bca 100644
 --- a/scrape.py
 +++ b/scrape.py
-@@ -29,6 +29,7 @@ from zoneinfo import ZoneInfo
+@@ -21,6 +21,7 @@ from __future__ import annotations
+ 
+ import argparse
+ import logging
++import os
+ import sys
+ from dataclasses import dataclass
+ from datetime import datetime, timezone
+@@ -29,6 +30,7 @@ from zoneinfo import ZoneInfo
  
  import yaml
  
@@ -2603,7 +2611,56 @@ index 944fae5..538f59d 100644
  import notify
  import report as report_mod
  import state
-@@ -168,20 +169,15 @@ def run(dry_run: bool, force: bool, out_of_region: bool = False) -> int:
+@@ -36,6 +38,8 @@ from config import Config
+ from location_matcher import LocationMatcher
+ from matcher import TitleMatcher
+ from scrapers import SCRAPER_REGISTRY, JobPosting, ScrapeError
++from scrapers.base import EmptyResult
++from scrapers.site import uses_query
+ 
+ # ---------------------------------------------------------------------------
+ # Config
+@@ -119,6 +123,29 @@ class ScrapeResult:
+         return self.postings is not None and self.error is None and self.skipped_reason is None
+ 
+ 
++# Readers that search the board by keyword; the others already return every opening.
++SEARCHABLE = {"workday", "amazon", "ibm", "goldman", "google", "eightfold", "oraclehcm", "site"}
++
++
++def _fetch_all(scraper_cls, company: Company) -> list[JobPosting]:
++    """One fetch per search term in JOB_SEARCH_QUERIES (set from settings.json), merged by URL."""
++    queries = [q for q in os.environ.get("JOB_SEARCH_QUERIES", "").split("|") if q]
++    if company.ats not in SEARCHABLE or not queries:
++        return scraper_cls(company.name, company.ats_config).fetch()
++    if company.ats == "site" and not uses_query(company.ats_config):
++        queries = queries[:1]  # the address never changes with the term: load it once
++    found, empty = {}, []
++    for q in queries:
++        try:
++            for p in scraper_cls(company.name, {**company.ats_config, "query": q, "search": q}).fetch():
++                found.setdefault(p.url, p)
++        except EmptyResult as exc:  # one search with no results must not lose the others
++            empty.append(exc)
++    if empty and len(empty) == len(queries):
++        raise empty[0]
++    return list(found.values())
++
++
+ def scrape_one(company: Company) -> ScrapeResult:
+     """Scrape one company. Catches all exceptions — never raises."""
+     if company.ats == "skip":
+@@ -134,8 +161,7 @@ def scrape_one(company: Company) -> ScrapeResult:
+         )
+ 
+     try:
+-        scraper = scraper_cls(company.name, company.ats_config)
+-        postings = scraper.fetch()
++        postings = _fetch_all(scraper_cls, company)
+         return ScrapeResult(company=company, postings=postings)
+     except ScrapeError as exc:
+         return ScrapeResult(company=company, error=str(exc))
+@@ -168,20 +194,15 @@ def run(dry_run: bool, force: bool, out_of_region: bool = False) -> int:
  
      log.info("Loaded %d companies from %s", len(companies), COMPANIES_FILE)
  
@@ -2631,7 +2688,7 @@ index 944fae5..538f59d 100644
  
      # Match titles and update state.
      #
-@@ -198,6 +194,8 @@ def run(dry_run: bool, force: bool, out_of_region: bool = False) -> int:
+@@ -198,6 +219,8 @@ def run(dry_run: bool, force: bool, out_of_region: bool = False) -> int:
      matched_now: dict[str, list[dict]] = {}  # company -> list of matched posting dicts
  
      for result in results:
@@ -2640,6 +2697,17 @@ index 944fae5..538f59d 100644
          if result.skipped_reason in ("skip", "unknown"):
              # Don't touch failure state for these; they're intentional.
              # But do drop them from new_snapshots so they don't leak into diffs.
+@@ -325,6 +348,10 @@ def _diff(
+     seen_now_keys_by_company: dict[str, set[tuple[str, str]]] = {}
+ 
+     for company, postings in new.items():
++        if company not in old:  # first time this company was read: a baseline, not news
++            still_open.extend(postings)
++            seen_now_keys_by_company[company] = {(p["title"], p["url"]) for p in postings}
++            continue
+         old_keys = old_keys_by_company.get(company, set())
+         seen_now: set[tuple[str, str]] = set()
+         for p in postings:
 diff --git a/scrapers/__init__.py b/scrapers/__init__.py
 index 2068eb6..b0ed730 100644
 --- a/scrapers/__init__.py
@@ -2683,7 +2751,7 @@ index e93d115..d1da716 100644
              )
          return postings
 diff --git a/scrapers/base.py b/scrapers/base.py
-index 377d4f8..e87c137 100644
+index 377d4f8..4f40636 100644
 --- a/scrapers/base.py
 +++ b/scrapers/base.py
 @@ -24,6 +24,7 @@ class JobPosting:
@@ -2694,6 +2762,17 @@ index 377d4f8..e87c137 100644
  
      def to_dict(self) -> dict[str, Any]:
          return asdict(self)
+@@ -35,6 +36,10 @@ class ScrapeError(Exception):
+     """
+ 
+ 
++class EmptyResult(ScrapeError):
++    """The board answered but listed nothing for this search."""
++
++
+ class BaseScraper:
+     """Abstract base. Subclasses implement fetch().
+ 
 diff --git a/scrapers/greenhouse.py b/scrapers/greenhouse.py
 index 32d46a7..b9921c6 100644
 --- a/scrapers/greenhouse.py

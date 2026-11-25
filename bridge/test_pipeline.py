@@ -451,6 +451,34 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class PostingAge(unittest.TestCase):
+    def ledger(self, url):
+        old = (T - timedelta(hours=26)).isoformat()
+        return {**empty_ledger(), "queued": {url: T.isoformat()}, "meta": {url: {"posted_at": old, "title": "x"}}}
+
+    def test_old_postings_wait_for_nothing_but_workday_gets_its_day(self):
+        settings = {**SETTINGS, "posted_within_minutes": 1440}
+        self.assertEqual(pipeline.pick_to_apply(self.ledger("u1"), settings, T), [])
+        url = "https://a.wd5.myworkdayjobs.com/x/job/1"
+        self.assertEqual(pipeline.pick_to_apply(self.ledger(url), settings, T), [url])
+
+    def test_retry_skips_the_age_limit(self):
+        with tempfile.TemporaryDirectory() as d:
+            db = Path(d) / "a.db"
+            conn = sqlite3.connect(db)
+            conn.execute("CREATE TABLE jobs (url TEXT PRIMARY KEY, apply_status TEXT, apply_error TEXT)")
+            conn.execute("INSERT INTO jobs VALUES ('u1', 'failed', 'x')")
+            conn.commit()
+            conn.close()
+            ledger = {**self.ledger("u1"), "done": ["u1"]}
+            pipeline.requeue_failed(ledger, T, db)
+            self.assertEqual(pipeline.pick_to_apply(ledger, {**SETTINGS, "posted_within_minutes": 60}, T), ["u1"])
+
+    def test_route_looks_at_the_host_only(self):
+        for url in ("https://evil.test/a?x=jobs.ashbyhq.com", "https://evil.test/greenhouse.io/s/jobs/1"):
+            self.assertEqual(pipeline.apply_route(url, [])[0], "manual", url)
+
+
 class Priority(unittest.TestCase):
     def test_new_york_first(self):
         self.assertEqual(pipeline.priority({"location": "New York, NY"}), 0)

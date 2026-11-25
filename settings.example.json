@@ -31,5 +31,12 @@
   "title_block_regex": "pharmac|\\bstore\\b|retail|merchandis|manufactur|mechanical|industrial|electrical|civil|chemical|hardware|facilities|supply chain|project management|marketing|\\bsales\\b|human resources|\\bfinance\\b|accounting|legal|nurs|aerospace|propulsion|thermal|materials|reliability|safety|quality|petroleum|biomedical|environmental|structural|laboratory|\\blab\\b|clinical|research assistant|protein|biolog|chem|drug|molecular|genom|immun|cell\\b",
   "experience_projects": [],
   "experience_quiet_minutes": 30,
-  "experience_min_hours": 3
+  "experience_min_hours": 3,
+  "job_field": "",
+  "job_target": "",
+  "search_queries": [],
+  "page_regex": "",
+  "job_locations": [],
+  "newsletter": true,
+  "watchlist": true
 }
