@@ -166,8 +166,9 @@ def rewrite(project: dict, old: list[str], evidence: str, model: str, ask=ask_cl
         "shows a bullet is now wrong. Do not add older features that the bullets simply left out. Keep all other "
         "wording exactly. Data sizes that were not counted just now stay as they are.\n"
         "Rules: use only the facts given; plans and to-do items are not finished work; never claim users, "
-        "deployment or results that are not stated; every number must appear in the facts; same number of "
-        "bullets (one more only for a large new feature); past tense, plain wording.\n"
+        "deployment or results that are not stated; every number must appear in the facts, copied exactly with no "
+        "rounding; same number of bullets (one more only for a large new feature); past tense, plain wording.\n"
+        f"No bullet may be longer than {max(len(x) for x in old) + 80} characters.\n"
         + (f"These phrases must stay in the bullets: {', '.join(keep)}.\n" if keep else "")
         + ("This was a group project: describe only work shown in this author's own commits.\n"
            if project.get("author") else "")

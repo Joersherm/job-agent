@@ -27,7 +27,7 @@ Built on RoleDar and ApplyPilot. See [CREDITS.md](CREDITS.md) for who wrote what
 | `bridge/report.py` | HTML reports of every application |
 | `bridge/notify.py`, `guard.py` | Clickable popups; a watchdog that kills stuck cycles |
 | `patches/` | My changes to RoleDar and ApplyPilot |
-| `launchd/`, `run-*.sh` | macOS scheduling (hourly cycle, always-on daemon, daily report) |
+| `launchd/`, `run-*.sh` | macOS scheduling: always-on scanner, daily report, watchlist (and an optional hourly cycle instead of the scanner) |
 | `settings.example.json` | All tunables |
 
 ## Job sources
