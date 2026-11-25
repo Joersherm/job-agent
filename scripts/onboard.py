@@ -125,6 +125,11 @@ def preferences() -> None:
     settings = build_settings(base, cities, remote)
     settings["us_fallback"] = yes("Also apply elsewhere in the US, including in person, when there are too few matches?",
                                   False)
+    if not yes("Apply only to software, data and IT roles?", True):
+        settings["software_title_regex"] = ""
+    elif not settings.get("software_title_regex"):
+        example = json.loads((ROOT / "settings.example.json").read_text(encoding="utf-8"))
+        settings["software_title_regex"] = example["software_title_regex"]
     settings["max_per_hour"] = number("Most applications per hour", 3, 1, 20)
     settings["min_score"] = number("Minimum fit score to apply (higher is pickier)", 7, 1, 10)
     print("Auto-submit sends applications without your review. Start with n and check the filled forms.")

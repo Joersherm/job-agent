@@ -6,7 +6,7 @@ the patches in `patches/`.
 
 | Project | Author | License | What this repo uses it for |
 |---|---|---|---|
-| [RoleDar](https://github.com/dalecook/roledar) | Dale Cook | MIT | Scrapes company job boards (Greenhouse, Ashby, Lever, ...). Patched: extra filters, a Workday scraper, company list. Pinned at `e432d7a`. |
+| [RoleDar](https://github.com/dalecook/roledar) | Dale Cook | MIT | Scrapes company job boards (Greenhouse, Ashby, Lever, ...). Patched: extra filters, Workday and company career-site scrapers, parallel scanning, company list. Pinned at `e432d7a`. |
 | [ApplyPilot](https://github.com/Pickle-Pixel/ApplyPilot) | Pickle-Pixel and contributors | AGPL-3.0 | Scores jobs, tailors the resume and cover letter, fills out applications. Patched: apply prompt, Chrome handling, scoring and tailoring prompts, LaTeX resume output. Pinned at `4a8d521`. |
 | [ai-job-search](https://github.com/MadsLorentzen/ai-job-search) | Mads Lorentzen | MIT | Cloned and read for ideas while building this. No code from it is used. |
 | Jake's Resume (LaTeX template) | Jake Gutierrez, building on Sourabh Bajaj's template | MIT | The resume layout that `latex_resume.py` imitates. |

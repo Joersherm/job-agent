@@ -35,8 +35,9 @@ from pathlib import Path
 
 import newsletter
 import sync_experience
+import sync_projects
 
-ROOT =Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 ROLEDAR = ROOT / "vendor" / "roledar"
 SETTINGS = ROOT / "settings.json"
 LEDGER = ROOT / "state" / "ledger.json"
@@ -179,6 +180,15 @@ def apply_prefs(settings: dict) -> None:
     newsletter.INCLUDE_REMOTE = settings.get("include_remote", True)
 
 
+def is_software(title: str, settings: dict | None = None) -> bool:
+    """Only software roles are applied to (title must read as software work and not as another field)."""
+    cfg = settings or (json.loads(SETTINGS.read_text()) if SETTINGS.exists() else {})
+    allow, block = cfg.get("software_title_regex"), cfg.get("title_block_regex")
+    if not allow:
+        return True
+    return bool(re.search(allow, title or "", re.I)) and not (block and re.search(block, title or "", re.I))
+
+
 def priority(meta: dict) -> int:
     """0 = New York City, 1 = other local (DC / remote), 2 = rest of the US."""
     if meta.get("tier", "local") != "local":
@@ -273,6 +283,8 @@ def enqueue(conn: sqlite3.Connection, rows: list[dict], ledger: dict, t: datetim
     """Insert rows into ApplyPilot's jobs table, same columns as its store_jobs()."""
     added = 0
     for row in rows:
+        if not is_software(row.get("title", "")):
+            continue  # not a software role: never queued
         cur = conn.execute(
             "INSERT OR IGNORE INTO jobs (url, title, location, site, strategy, discovered_at) "
             "VALUES (?, ?, ?, ?, ?, ?)",
@@ -502,6 +514,9 @@ def restart_requested(ledger: dict, t: datetime, path: Path = RETRY_FILE, db: Pa
     conn = sqlite3.connect(db)
     try:
         for url in list(ledger["queued"]):
+            row = conn.execute("SELECT apply_status FROM jobs WHERE url = ?", (url,)).fetchone()
+            if row and row[0] == "applied":
+                continue  # never restart something that already went through
             if any(w in url for w in wanted):
                 conn.execute("UPDATE jobs SET apply_status = NULL, apply_error = NULL WHERE url = ?", (url,))
                 if url in ledger["done"]:
@@ -623,6 +638,7 @@ def pick_to_apply(ledger: dict, settings: dict, t: datetime) -> list[str]:
     fresh = [
         (url, ts) for url, ts in list(ledger["queued"].items())
         if url not in done and datetime.fromisoformat(ts) >= cutoff
+        and is_software(ledger.get("meta", {}).get(url, {}).get("title", ""), settings)
     ]
     # New York roles first, then DC/remote, then the rest of the US; newest first within each group.
     fresh.sort(key=lambda x: x[1], reverse=True)
@@ -637,6 +653,7 @@ PLAIN = {
     "did not submit": "The agent finished without submitting",
     "failed": "The application failed",
 }
+PLAYWRIGHT_LOCK = threading.Lock()  # one Playwright session at a time inside this process
 CRASHES = ("in_progress", "no_result_line", "did not submit", "failed")  # nothing on the page to fix
 
 
@@ -644,7 +661,7 @@ def page_problems(port: int, url: str) -> str:
     """What the open application page is complaining about (invalid / required fields), in plain words."""
     try:
         from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
+        with PLAYWRIGHT_LOCK, sync_playwright() as p:
             browser = p.chromium.connect_over_cdp(f"http://localhost:{port}", timeout=8000)
             pages = [pg for pg in browser.contexts[0].pages if pg.url.startswith("http")]
             base = url.split("?")[0].rstrip("/")
@@ -749,6 +766,12 @@ def scan_pass(settings: dict, ledger: dict) -> None:
         sync_experience.sync(settings, log)
     except Exception as exc:  # the resume is a side task; never block applications on it
         log(f"Resume sync skipped: {exc}")
+    try:
+        for name in sync_projects.sync(settings, log):
+            alert(ledger, f"resume:{name}", "Resume updated",
+                  f"The {name} entry changed. Click to check the new wording.", "file", str(sync_projects.CHANGES))
+    except Exception as exc:
+        log(f"Project resume sync skipped: {exc}")
     seeding = not (ROLEDAR / "state" / "last_run.json").exists()
     started = time.time()
     report = None
@@ -1055,6 +1078,12 @@ def main(argv: list[str] | None = None) -> int:
                     save_ledger(ledger)
                 else:
                     log_changed("ready:" + url, f"Not ready yet (scoring/tailoring pending), will retry: {meta.get('title') or url}")
+                continue
+            if fit is not None and fit < settings["min_score"]:
+                log(f"Skipped (score {fit} is below {settings['min_score']}): {meta.get('title') or url}")
+                record_application(url, meta, "skipped", f"score {fit} below minimum {settings['min_score']}")
+                ledger["done"].append(url)
+                save_ledger(ledger)
                 continue
             route, why = apply_route(url) if settings.get("preflight", True) else ("auto", "")
             if route == "manual":

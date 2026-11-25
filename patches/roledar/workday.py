@@ -22,6 +22,7 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
+from . import _pw
 from .base import BaseScraper, JobPosting, ScrapeError
 
 PAGE = 20
@@ -46,8 +47,9 @@ class _Reply:
             raise requests.HTTPError(f"{self.status_code} Client Error for Workday")
 
 
-WD_PORT = 9225
-WD_PROFILE = Path(__file__).resolve().parents[1] / "state" / "workday-chrome"
+WD_PORT = int(os.environ.get("WORKDAY_CHROME_PORT", "9225"))  # one port per process type, so two never share a Chrome
+WD_PROFILE = Path(__file__).resolve().parents[1] / "state" / (
+    "workday-chrome" if WD_PORT == 9225 else f"workday-chrome-{WD_PORT}")
 
 
 def _chrome_pid() -> int | None:
@@ -60,8 +62,6 @@ def _close_browser() -> None:
     try:
         if _state["browser"]:
             _state["browser"].close()
-        if _state["pw"]:
-            _state["pw"].stop()
     except Exception:
         pass
     _state["browser"] = _state["pw"] = None
@@ -79,7 +79,6 @@ def _page_for(host: str, tenant: str, site: str):
 
     Chrome is started hidden and in the background (`open -g -j`) so no window ever takes focus.
     """
-    from playwright.sync_api import sync_playwright
     if _state["browser"] is None:
         if _chrome_pid():
             _close_browser()  # leftover from a crashed scan
@@ -91,7 +90,7 @@ def _page_for(host: str, tenant: str, site: str):
             if _chrome_pid():
                 break
             time.sleep(0.5)
-        _state["pw"] = sync_playwright().start()
+        _state["pw"] = _pw.get()
         _state["browser"] = _state["pw"].chromium.connect_over_cdp(f"http://localhost:{WD_PORT}")
         atexit.register(_close_browser)
     # One tab for the whole scan: it is navigated from company to company, so no new tab or window
@@ -126,7 +125,10 @@ def _fetch(host: str, tenant: str, site: str, path: str, body: dict | None = Non
         except Exception as exc:
             _close_browser()  # Chrome died or hung: start a fresh one and try once more
             if attempt == 2:
-                _state["refused"] += 1
+                offline = re.search(r"ERR_(INTERNET_DISCONNECTED|NAME_NOT_RESOLVED|ADDRESS_UNREACHABLE|NETWORK_CHANGED|"
+                                    r"CONNECTION_(RESET|CLOSED|TIMED_OUT)|TIMED_OUT)", str(exc))
+                if not offline:  # a dropped network is not Workday refusing us: do not trip the cooldown
+                    _state["refused"] += 1
                 raise ScrapeError(f"Workday browser fetch failed for {tenant!r}: {exc}")
     _state["last"] = time.time()
     _state["refused"] = _state["refused"] + 1 if status == 429 else 0

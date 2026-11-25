@@ -20,6 +20,16 @@
   "preflight": false,
   "apply_timeout_minutes": 60,
   "apply_idle_minutes": 5,
-  "apply_slots": [0, 6, 7, 8],
-  "scan_gap_minutes": 15
+  "apply_slots": [
+    0,
+    6,
+    7,
+    8
+  ],
+  "scan_gap_minutes": 15,
+  "software_title_regex": "\\bsoftware\\b|\\bswe\\b|\\bdevelopers?\\b|\\bprogrammer\\b|full[- ]?stack|front[- ]?end|back[- ]?end|\\bmobile\\b|\\bios\\b|\\bandroid\\b|\\bweb\\b|devops|site reliability|\\bsre\\b|platform engineer|infrastructure engineer|cloud engineer|machine learning|\\bml\\b|\\bai\\b|data engineer|cyber|information security|infosec|security engineer|data scien|\\bdata\\b|analytic|business intelligence|\\bbi\\b|\\bit\\b|information technology|technolog|digital|systems|computer|computing|automation|product|quantitative|\\bquant\\b|engineer",
+  "title_block_regex": "pharmac|\\bstore\\b|retail|merchandis|manufactur|mechanical|industrial|electrical|civil|chemical|hardware|facilities|supply chain|project management|marketing|\\bsales\\b|human resources|\\bfinance\\b|accounting|legal|nurs|aerospace|propulsion|thermal|materials|reliability|safety|quality|petroleum|biomedical|environmental|structural|laboratory|\\blab\\b|clinical|research assistant|protein|biolog|chem|drug|molecular|genom|immun|cell\\b",
+  "experience_projects": [],
+  "experience_quiet_minutes": 30,
+  "experience_min_hours": 3
 }

@@ -7,6 +7,7 @@ Each posting is reported once. The first run reports everything currently open.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -16,6 +17,7 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
+os.environ.setdefault("WORKDAY_CHROME_PORT", "9226")  # the always-on scanner uses 9225; never share its Chrome
 sys.path.insert(0, str(ROOT / "vendor" / "roledar"))
 STATE = ROOT / "state" / "watchlist.json"
 REPORT = ROOT / "reports" / "watchlist.md"
@@ -124,7 +126,7 @@ def opened_today(r: dict, first: bool) -> bool:
     return r["url"].find("myworkdayjobs") >= 0 or not first
 
 
-def gather(log=print) -> list[dict]:
+def gather(log=print, failed: list | None = None) -> list[dict]:
     sources = [("Amazon", amazon), ("IBM", ibm), ("Goldman Sachs", goldman)]
     sources += [(n, (lambda n=n, a=a, c=c: via_roledar(n, a, c))) for n, (a, c) in ATS.items()]
     rows = []
@@ -135,6 +137,8 @@ def gather(log=print) -> list[dict]:
                 break
             except Exception as exc:
                 if attempt == 1:
+                    if failed is not None:
+                        failed.append(name)
                     log(f"Watchlist: {name} failed ({type(exc).__name__}: {str(exc)[:100]})")
                 else:
                     time.sleep(5)
@@ -145,7 +149,8 @@ def run(log=print, notify=None) -> list[dict]:
     """Find postings not reported before. notify(title, message, kind, arg) raises the popup."""
     state = json.loads(STATE.read_text()) if STATE.exists() else {"seen": {}}
     first = not state["seen"]
-    found = gather(log)
+    failed: list[str] = []
+    found = gather(log, failed)
     new = [r for r in found if r["url"] not in state["seen"] and opened_today(r, first)]
     for r in found:  # older postings are recorded so they never show up later
         state["seen"].setdefault(r["url"], "old")
@@ -164,6 +169,10 @@ def run(log=print, notify=None) -> list[dict]:
     STATE.parent.mkdir(exist_ok=True)
     STATE.write_text(json.dumps(state, indent=1))
     log(f"Watchlist: {len(new)} new internship(s) at watched companies (not applying)")
+    if not new and notify:  # a daily digest even when empty, so silence never looks like "it did not run"
+        miss = f" Could not check: {', '.join(failed)}." if failed else ""
+        notify("Watchlist, 4 pm", "No new internships opened today at your watched companies." + miss,
+               "file", str(REPORT if REPORT.exists() else STATE))
     if new and notify:
         by = {}
         for r in new:

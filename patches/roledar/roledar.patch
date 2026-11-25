@@ -1,8 +1,8 @@
 diff --git a/companies.yaml b/companies.yaml
-index 379fefd..b03e956 100644
+index 379fefd..85ef3a0 100644
 --- a/companies.yaml
 +++ b/companies.yaml
-@@ -1,142 +1,1717 @@
+@@ -1,142 +1,2259 @@
 -# Sorted alphabetically by company name (case-insensitive).
 -#
 -# Each company has:
@@ -1861,6 +1861,548 @@ index 379fefd..b03e956 100644
 +    host: caci.wd1.myworkdayjobs.com
 +    tenant: caci
 +    site: External
++- name: Anterior
++  url: https://jobs.ashbyhq.com/anterior
++  ats: ashby
++  ats_config:
++    org: anterior
++- name: Arch
++  url: https://jobs.ashbyhq.com/arch
++  ats: ashby
++  ats_config:
++    org: arch
++- name: Rillet
++  url: https://jobs.ashbyhq.com/rillet
++  ats: ashby
++  ats_config:
++    org: rillet
++- name: Strix
++  url: https://jobs.ashbyhq.com/strix
++  ats: ashby
++  ats_config:
++    org: strix
++- name: Baseten
++  url: https://jobs.ashbyhq.com/baseten
++  ats: ashby
++  ats_config:
++    org: baseten
++- name: Garner Health
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: garnerhealth
++- name: Vanguard
++  url: ''
++  ats: skip  # workday board bounces the browser fetch; revisit
++  _ats_was: workday
++  ats_config:
++    host: vanguard.wd5.myworkdayjobs.com
++    tenant: vanguard
++    site: vanguard_external
++- name: Regeneron
++  url: ''
++  ats: workday
++  ats_config:
++    host: regeneron.wd1.myworkdayjobs.com
++    tenant: regeneron
++    site: Careers
++- name: Amazon
++  url: https://www.amazon.jobs
++  ats: amazon
++  ats_config: {}
++- name: Goldman Sachs
++  url: https://higher.gs.com
++  ats: goldman
++  ats_config: {}
++- name: IBM
++  url: https://www.ibm.com/careers
++  ats: ibm
++  ats_config: {}
++- name: Google
++  url: https://www.google.com/about/careers
++  ats: google
++  ats_config: {}
++- name: Meta
++  url: https://www.metacareers.com
++  ats: site
++  ats_config:
++    impl: meta
++    url: https://www.metacareers.com/jobsearch?q=intern&roles[0]=Internship&page={page}
++    max_pages: 20
++    base_url: https://www.metacareers.com
++    render: true
++    wait_selector: a[href*='/profile/job_details/']
++- name: Spotify
++  url: https://www.lifeatspotify.com
++  ats: lever
++  ats_config:
++    slug: spotify
++- name: ServiceNow
++  url: https://careers.servicenow.com
++  ats: smartrecruiters
++  ats_config:
++    company: servicenow
++- name: Hudson River Trading
++  url: https://www.hudsonrivertrading.com/careers
++  ats: greenhouse
++  ats_config:
++    board: wehrtyou
++- name: DRW
++  url: https://drw.com/work-at-drw
++  ats: greenhouse
++  ats_config:
++    board: drweng
++- name: Broadcom
++  url: ''
++  ats: workday
++  ats_config:
++    host: broadcom.wd1.myworkdayjobs.com
++    tenant: broadcom
++    site: External_Career
++- name: Micron
++  url: ''
++  ats: eightfold
++  ats_config:
++    host: micron.eightfold.ai
++    domain: micron.com
++    max_pages: 20
++- name: CrowdStrike
++  url: ''
++  ats: workday
++  ats_config:
++    host: crowdstrike.wd5.myworkdayjobs.com
++    tenant: crowdstrike
++    site: crowdstrikecareers
++- name: Zoom
++  url: ''
++  ats: workday
++  ats_config:
++    host: zoom.wd5.myworkdayjobs.com
++    tenant: zoom
++    site: Zoom
++- name: Visa
++  url: ''
++  ats: workday
++  ats_config:
++    host: visa.wd5.myworkdayjobs.com
++    tenant: visa
++    site: Visa
++- name: JPMorgan Chase
++  url: https://careers.jpmorgan.com
++  ats: oraclehcm
++  ats_config:
++    host: jpmc.fa.oraclecloud.com
++    site: CX_1001
++- name: Oracle
++  url: https://careers.oracle.com
++  ats: oraclehcm
++  ats_config:
++    host: eeho.fa.us2.oraclecloud.com
++    site: CX_45001
++- name: Netflix
++  url: https://jobs.netflix.com
++  ats: eightfold
++  ats_config:
++    host: explore.jobs.netflix.net
++    domain: netflix.com
++    api: v2
++- name: Microsoft
++  url: https://careers.microsoft.com
++  ats: eightfold
++  ats_config:
++    host: apply.careers.microsoft.com
++    domain: microsoft.com
++    browser: true
++- name: Morgan Stanley
++  url: https://www.morganstanley.com/careers
++  ats: eightfold
++  ats_config:
++    host: morganstanley.eightfold.ai
++    domain: morganstanley.com
++- name: Qualcomm
++  url: https://careers.qualcomm.com
++  ats: eightfold
++  ats_config:
++    host: qualcomm.eightfold.ai
++    domain: qualcomm.com
++- name: Atlassian
++  url: https://www.atlassian.com/company/careers
++  ats: atlassian
++  ats_config: {}
++- name: Palantir
++  url: ''
++  ats: lever
++  ats_config:
++    slug: palantir
++- name: Zoox
++  url: ''
++  ats: lever
++  ats_config:
++    slug: zoox
++- name: Cohere
++  url: ''
++  ats: ashby
++  ats_config:
++    org: cohere
++- name: Perplexity
++  url: ''
++  ats: ashby
++  ats_config:
++    org: perplexity
++- name: xAI
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: xai
++- name: JFrog
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: jfrog
++- name: Tenable
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: tenableinc
++- name: Ping Identity
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: pingidentity
++- name: Canva
++  url: ''
++  ats: smartrecruiters
++  ats_config:
++    company: canva
++- name: Western Digital
++  url: ''
++  ats: smartrecruiters
++  ats_config:
++    company: westerndigital
++- name: Anduril
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: andurilindustries
++- name: DoorDash
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: doordashusa
++- name: HubSpot
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: hubspotjobs
++- name: Arista
++  url: ''
++  ats: smartrecruiters
++  ats_config:
++    company: aristanetworks
++- name: Dell
++  url: https://jobs.dell.com
++  ats: oraclehcm
++  ats_config:
++    host: enterpriseplatform.dell.com
++    site: careers
++- name: Texas Instruments
++  url: https://careers.ti.com
++  ats: oraclehcm
++  ats_config:
++    host: edbz.fa.us2.oraclecloud.com
++    site: CX
++- name: Apple
++  url: https://jobs.apple.com
++  ats: site
++  ats_config:
++    url: https://jobs.apple.com/en-us/search?search=intern&sort=newest&location=united-states-USA&page={page}
++    base_url: https://jobs.apple.com
++    render: true
++    max_pages: 6
++    link_selector: a[href*="/en-us/details/"]
++    default_location: United States
++- name: Uber
++  url: https://www.uber.com/us/en/careers
++  ats: site
++  ats_config:
++    impl: uber
++    url: https://jobs.uber.com/en/jobs/?query=intern&page={page}
++    max_pages: 6
++    base_url: https://jobs.uber.com
++    render: true
++    wait_selector: a[href*="/en/jobs/3"]
++    link_selector: a[href*="/en/jobs/"]
++    card_selector: div.bg-card
++    title_line: 0
++    location_line: 2
++- name: AMD
++  url: https://careers.amd.com
++  ats: site
++  ats_config:
++    url: https://careers.amd.com/careers-home/jobs?keywords=intern&page={page}
++    base_url: https://careers.amd.com
++    render: true
++    max_pages: 5
++    link_selector: a[href*="/careers-home/jobs/"]
++    card_selector: mat-expansion-panel
++    title_line: 0
++    location_after: Location
++- name: Snap
++  url: https://careers.snap.com
++  ats: site
++  ats_config:
++    url: https://careers.snap.com/jobs?q=intern
++    base_url: https://careers.snap.com
++    render: true
++    link_selector: a[href^="/job?id="]
++    card_selector: tr
++    title_line: 0
++    location_line: -1
++- name: Bloomberg
++  url: https://careers.bloomberg.com
++  ats: site
++  ats_config:
++    url: https://bloomberg.avature.net/careers/SearchJobs/intern?jobOffset={offset}
++    page_size: 12
++    base_url: https://bloomberg.avature.net
++    render: true
++    max_pages: 8
++    link_selector: a[href*="JobDetail"]
++    card_selector: article
++    title_line: 0
++    location_line: 1
++- name: Take-Two
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: taketwo
++- name: GoDaddy
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: godaddy
++- name: Microchip
++  url: ''
++  ats: smartrecruiters
++  ats_config:
++    company: microchip
++- name: Experian
++  url: ''
++  ats: smartrecruiters
++  ats_config:
++    company: experian
++- name: Snyk
++  url: ''
++  ats: ashby
++  ats_config:
++    org: snyk
++- name: Netskope
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: netskope
++- name: Commvault
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: commvault
++- name: Coupa
++  url: ''
++  ats: lever
++  ats_config:
++    slug: coupa
++- name: Nintendo
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: nintendo
++- name: Illumio
++  url: ''
++  ats: ashby
++  ats_config:
++    org: illumio
++- name: Cato Networks
++  url: ''
++  ats: greenhouse
++  ats_config:
++    board: catonetworks
++- name: Toptal
++  url: ''
++  ats: lever
++  ats_config:
++    slug: toptal
++- name: Marvell
++  url: ''
++  ats: workday
++  ats_config:
++    host: marvell.wd1.myworkdayjobs.com
++    tenant: marvell
++    site: MarvellCareers
++- name: KLA
++  url: ''
++  ats: workday
++  ats_config:
++    host: kla.wd1.myworkdayjobs.com
++    tenant: kla
++    site: Search
++- name: GlobalFoundries
++  url: ''
++  ats: workday
++  ats_config:
++    host: globalfoundries.wd1.myworkdayjobs.com
++    tenant: globalfoundries
++    site: External
++- name: Etsy
++  url: ''
++  ats: workday
++  ats_config:
++    host: etsy.wd5.myworkdayjobs.com
++    tenant: etsy
++    site: Etsy_Careers
++- name: Fiserv
++  url: ''
++  ats: workday
++  ats_config:
++    host: fiserv.wd5.myworkdayjobs.com
++    tenant: fiserv
++    site: EXT
++- name: Global Payments
++  url: ''
++  ats: workday
++  ats_config:
++    host: tsys.wd1.myworkdayjobs.com
++    tenant: tsys
++    site: Tsys
++- name: T. Rowe Price
++  url: ''
++  ats: workday
++  ats_config:
++    host: troweprice.wd5.myworkdayjobs.com
++    tenant: troweprice
++    site: Troweprice
++- name: Fair Isaac
++  url: ''
++  ats: workday
++  ats_config:
++    host: fico.wd1.myworkdayjobs.com
++    tenant: fico
++    site: External
++- name: Morningstar
++  url: ''
++  ats: workday
++  ats_config:
++    host: morningstar.wd5.myworkdayjobs.com
++    tenant: morningstar
++    site: Morningstar
++- name: Equifax
++  url: ''
++  ats: workday
++  ats_config:
++    host: equifax.wd5.myworkdayjobs.com
++    tenant: equifax
++    site: External
++- name: TransUnion
++  url: ''
++  ats: workday
++  ats_config:
++    host: transunion.wd5.myworkdayjobs.com
++    tenant: transunion
++    site: Transunion
++- name: Gartner
++  url: ''
++  ats: workday
++  ats_config:
++    host: gartner.wd5.myworkdayjobs.com
++    tenant: gartner
++    site: EXT
++- name: General Dynamics IT
++  url: ''
++  ats: workday
++  ats_config:
++    host: gdit.wd5.myworkdayjobs.com
++    tenant: gdit
++    site: External_Career_Site
++- name: Qualys
++  url: ''
++  ats: workday
++  ats_config:
++    host: qualys.wd5.myworkdayjobs.com
++    tenant: qualys
++    site: careers
++- name: Proofpoint
++  url: ''
++  ats: workday
++  ats_config:
++    host: proofpoint.wd5.myworkdayjobs.com
++    tenant: proofpoint
++    site: ProofpointCareers
++- name: Cohesity
++  url: ''
++  ats: workday
++  ats_config:
++    host: cohesity.wd5.myworkdayjobs.com
++    tenant: cohesity
++    site: Cohesity_Careers
++- name: Zendesk
++  url: ''
++  ats: workday
++  ats_config:
++    host: zendesk.wd1.myworkdayjobs.com
++    tenant: zendesk
++    site: Zendesk
++- name: Trimble
++  url: ''
++  ats: workday
++  ats_config:
++    host: trimble.wd1.myworkdayjobs.com
++    tenant: trimble
++    site: TrimbleCareers
++- name: PTC
++  url: ''
++  ats: workday
++  ats_config:
++    host: ptc.wd1.myworkdayjobs.com
++    tenant: ptc
++    site: Ptc
++- name: Arctic Wolf
++  url: ''
++  ats: workday
++  ats_config:
++    host: arcticwolf.wd1.myworkdayjobs.com
++    tenant: arcticwolf
++    site: External
++- name: Millennium
++  url: ''
++  ats: workday
++  ats_config:
++    host: mlp.wd5.myworkdayjobs.com
++    tenant: mlp
++    site: MlpCareers
++- name: Intuit
++  url: https://jobs.intuit.com
++  ats: site
++  ats_config:
++    url: https://jobs.intuit.com/search-jobs?k=intern&p={page}
++    base_url: https://jobs.intuit.com
++    render: true
++    max_pages: 5
++    link_selector: li a[href*="/job/"]
++    card_selector: li
++    title_line: 0
++    location_line: 1
++    vague_location: Multiple Locations
++    default_location: United States
++- name: Citadel
++  url: https://www.citadel.com/careers
++  ats: site
++  ats_config:
++    url: https://www.citadel.com/careers/open-opportunities/?experience-filter=internship
++    base_url: https://www.citadel.com
++    render: true
++    link_selector: a[href*="/careers/details/"]
++    card_selector: a[href*="/careers/details/"]
++    title_line: 0
++    location_line: 1
 diff --git a/locations.yaml b/locations.yaml
 index 401bea5..ff52640 100644
 --- a/locations.yaml
@@ -2049,23 +2591,82 @@ index e13b951..7fa5dd4 100644
              "url":            p.get("url", ""),
          }
          for p in postings
+diff --git a/scrape.py b/scrape.py
+index 944fae5..538f59d 100644
+--- a/scrape.py
++++ b/scrape.py
+@@ -29,6 +29,7 @@ from zoneinfo import ZoneInfo
+ 
+ import yaml
+ 
++import lanes
+ import notify
+ import report as report_mod
+ import state
+@@ -168,20 +169,15 @@ def run(dry_run: bool, force: bool, out_of_region: bool = False) -> int:
+ 
+     log.info("Loaded %d companies from %s", len(companies), COMPANIES_FILE)
+ 
+-    # Scrape all companies.
++    # Scrape all companies, in parallel lanes, within the time budget.
++    done = lanes.scrape_all(companies)
+     results: list[ScrapeResult] = []
+-    for company in companies:
+-        log.info("Scraping %s (%s)", company.name, company.ats)
+-        result = scrape_one(company)
+-        results.append(result)
+-        if result.succeeded:
+-            log.info("  %s: %d total postings", company.name, len(result.postings))
+-        elif result.skipped_reason == "unknown":
+-            log.info("  %s: skipped (ats=unknown — probe to fix)", company.name)
+-        elif result.skipped_reason == "skip":
+-            log.info("  %s: skipped (ats=skip)", company.name)
++    for index, company in enumerate(companies):
++        if index in done:
++            postings, error, skipped = done[index]
++            results.append(ScrapeResult(company=company, postings=postings, error=error, skipped_reason=skipped))
+         else:
+-            log.warning("  %s: FAILED — %s", company.name, result.error)
++            results.append(ScrapeResult(company=company, skipped_reason="deadline"))
+ 
+     # Match titles and update state.
+     #
+@@ -198,6 +194,8 @@ def run(dry_run: bool, force: bool, out_of_region: bool = False) -> int:
+     matched_now: dict[str, list[dict]] = {}  # company -> list of matched posting dicts
+ 
+     for result in results:
++        if result.skipped_reason == "deadline":
++            continue  # not reached: keep its last snapshot and failure count as they are
+         if result.skipped_reason in ("skip", "unknown"):
+             # Don't touch failure state for these; they're intentional.
+             # But do drop them from new_snapshots so they don't leak into diffs.
 diff --git a/scrapers/__init__.py b/scrapers/__init__.py
-index 2068eb6..1eb83fa 100644
+index 2068eb6..b0ed730 100644
 --- a/scrapers/__init__.py
 +++ b/scrapers/__init__.py
-@@ -15,6 +15,7 @@ from .greenhouse import GreenhouseScraper
+@@ -15,6 +15,9 @@ from .greenhouse import GreenhouseScraper
  from .lever import LeverScraper
  from .smartrecruiters import SmartRecruitersScraper
  from .workable import WorkableScraper
 +from .workday import WorkdayScraper
++from .custom import AmazonScraper, AtlassianScraper, EightfoldScraper, GoldmanScraper, GoogleScraper, IbmScraper, OracleHcmScraper
++from .site import GenericSiteScraper, SiteScraper, make_site_scraper
  
  SCRAPER_REGISTRY: dict[str, type[BaseScraper]] = {
      "greenhouse": GreenhouseScraper,
-@@ -22,6 +23,7 @@ SCRAPER_REGISTRY: dict[str, type[BaseScraper]] = {
+@@ -22,6 +25,15 @@ SCRAPER_REGISTRY: dict[str, type[BaseScraper]] = {
      "ashby": AshbyScraper,
      "workable": WorkableScraper,
      "smartrecruiters": SmartRecruitersScraper,
 +    "workday": WorkdayScraper,
++    "amazon": AmazonScraper,
++    "goldman": GoldmanScraper,
++    "ibm": IbmScraper,
++    "google": GoogleScraper,
++    "eightfold": EightfoldScraper,
++    "oraclehcm": OracleHcmScraper,
++    "atlassian": AtlassianScraper,
++    "site": make_site_scraper,  # own careers site: generic selectors, or `impl:` for a custom subclass
  }
  
  __all__ = [

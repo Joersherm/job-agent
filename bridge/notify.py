@@ -65,6 +65,25 @@ def terminal_notifier() -> str | None:
 MANUAL_PORT = 9224
 
 
+def _move_into_view(port: int, tab_id: str) -> None:
+    """The application windows wait off-screen; bring this one onto the screen when you are needed."""
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", timeout=5000)
+            for page in browser.contexts[0].pages:
+                cdp = browser.contexts[0].new_cdp_session(page)
+                info = cdp.send("Target.getTargetInfo")["targetInfo"]
+                if info["targetId"] == tab_id:
+                    win = cdp.send("Browser.getWindowForTarget")
+                    cdp.send("Browser.setWindowBounds", {"windowId": win["windowId"],
+                             "bounds": {"left": 80, "top": 60, "width": 1280, "height": 860,
+                                        "windowState": "normal"}})
+                    return
+    except Exception:
+        pass
+
+
 def go_to_application(url: str, port: int = MANUAL_PORT) -> None:
     """Bring forward the application's tab in the Chrome window on `port`; open the link if it is gone."""
     import json
@@ -77,6 +96,7 @@ def go_to_application(url: str, port: int = MANUAL_PORT) -> None:
         # The tab for this application, or (the page may have moved on after Apply) the window's first tab.
         tab = next((t for t in pages if t.get("url", "").split("?")[0].rstrip("/") == base or url in t.get("url", "")),
                    pages[0])
+        _move_into_view(MANUAL_PORT, tab["id"])
         urllib.request.urlopen(f"http://127.0.0.1:{MANUAL_PORT}/json/activate/{tab['id']}", timeout=3)
         pid = subprocess.run(["lsof", "-ti", f"tcp:{MANUAL_PORT}", "-sTCP:LISTEN"],
                              capture_output=True, text=True).stdout.split()[0]

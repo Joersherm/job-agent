@@ -12,7 +12,8 @@ git -C vendor/roledar    checkout -q "$ROLEDAR_REV"
 git -C vendor/ApplyPilot checkout -q "$APPLYPILOT_REV"
 git -C vendor/roledar    apply ../../patches/roledar/roledar.patch
 git -C vendor/ApplyPilot apply ../../patches/applypilot/applypilot.patch
-cp patches/roledar/workday.py             vendor/roledar/scrapers/workday.py
+for f in _pw custom site workday; do cp "patches/roledar/$f.py" "vendor/roledar/scrapers/$f.py"; done
+cp patches/roledar/lanes.py              vendor/roledar/lanes.py
 cp patches/applypilot/latex_resume.py     vendor/ApplyPilot/src/applypilot/scoring/latex_resume.py
 python3 -m venv .venv
 .venv/bin/pip install -r vendor/roledar/requirements.txt

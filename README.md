@@ -8,7 +8,7 @@ RoleDar  ->  bridge/pipeline.py  ->  ApplyPilot
  job boards)  rate-limit, queue)      cover letter, fill the form)
 ```
 
-- **RoleDar** watches company ATS boards.
+- **RoleDar** watches company job boards (see [Job sources](#job-sources)).
 - **`bridge/pipeline.py`** keeps only roles that match `title_regex` and `location_regex`, drops ones it has seen,
   and enforces `max_per_hour` and the freshness window.
 - **ApplyPilot** tailors the resume and applies. `"auto_submit": false` fills forms without submitting. Start there.
@@ -21,6 +21,7 @@ Built on RoleDar and ApplyPilot. See [CREDITS.md](CREDITS.md) for who wrote what
 |---|---|
 | `bridge/pipeline.py` | Main loop: scan, filter, queue, apply, alert |
 | `bridge/watchlist.py`, `newsletter.py` | Extra job sources |
+| `bridge/sync_projects.py` | Optionally updates resume project entries when a project folder changes |
 | `bridge/learn.py`, `resolve.py` | Saves answers you type into a failed form so the agent reuses them (never passwords or IDs) |
 | `bridge/sync_experience.py` | Optionally rewrites one resume entry from your git commit subjects |
 | `bridge/report.py` | HTML reports of every application |
@@ -28,6 +29,18 @@ Built on RoleDar and ApplyPilot. See [CREDITS.md](CREDITS.md) for who wrote what
 | `patches/` | My changes to RoleDar and ApplyPilot |
 | `launchd/`, `run-*.sh` | macOS scheduling (hourly cycle, always-on daemon, daily report) |
 | `settings.example.json` | All tunables |
+
+## Job sources
+
+| Source | Read by |
+|---|---|
+| Greenhouse, Ashby, Lever, SmartRecruiters, Workable | RoleDar |
+| Workday | `patches/roledar/workday.py` |
+| Amazon, IBM, Goldman Sachs, Google, Atlassian, and Eightfold or Oracle HCM sites | `patches/roledar/custom.py` |
+| Other company career pages, including readers for Uber and Meta | `patches/roledar/site.py` and `custom.py`, set up per company in `companies.yaml` |
+
+`patches/roledar/lanes.py` scans these in parallel within a time limit. Career sites change often, so expect some
+readers to need fixes. Check the scan log for failures.
 
 ## Setup (macOS)
 
@@ -50,6 +63,7 @@ Read the code in `vendor/` before running it. It drives a real browser and can s
 1. **About you.** It starts ApplyPilot's wizard (`applypilot init`): resume, contact details, work authorization,
    salary, skills, facts the AI must not change, and your Gemini key.
 2. **What you want.** Preferred cities, remote roles, whether to include the rest of the US, applications per hour,
+   software roles only or all internships,
    minimum fit score, auto-submit (off unless you turn it on) and the optional resume-from-commits feature.
 
 It writes `settings.json` and `vendor/roledar/locations.yaml`, keeping the previous versions as `.bak` files.
@@ -78,4 +92,9 @@ them.
 `settings.json`, `.applypilot/`, `state/`, `logs/`, `reports/` and `resume.pdf` are git-ignored. Never commit them,
 and check `git status` before you push.
 
-Edit `settings.json` any time to fine-tune. Tests: `cd bridge && ../.venv/bin/python -m unittest -v test_pipeline test_resolve`
+To have project entries on your resume follow your project folders, add them to `experience_projects` in
+`settings.json`. Each needs `dir` (the folder) and `entry` (the start of that entry's first line in `resume.txt`).
+Optional: `author` (for group projects), `include` (file patterns) and `must_keep` (phrases to preserve).
+This sends excerpts of those files to Claude, so list only folders you're comfortable sharing with it.
+
+Edit `settings.json` any time to fine-tune. Tests: `cd bridge && ../.venv/bin/python -m unittest -v test_pipeline test_resolve test_sync_projects`

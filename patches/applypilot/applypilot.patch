@@ -1,5 +1,5 @@
 diff --git a/src/applypilot/apply/chrome.py b/src/applypilot/apply/chrome.py
-index 690211a..abfbb58 100644
+index 690211a..fde84fe 100644
 --- a/src/applypilot/apply/chrome.py
 +++ b/src/applypilot/apply/chrome.py
 @@ -5,6 +5,7 @@ worker profile setup/cloning, and cross-platform process cleanup.
@@ -57,7 +57,70 @@ index 690211a..abfbb58 100644
                      _kill_process_tree(int(pid_str))
      except FileNotFoundError:
          logger.debug("Port-kill tool not found (netstat/lsof) for port %d", port)
-@@ -266,6 +282,25 @@ def cleanup_worker(worker_id: int, process: subprocess.Popen | None) -> None:
+@@ -186,6 +202,27 @@ def _suppress_restore_nag(profile_dir: Path) -> None:
+ # Chrome launch / kill
+ # ---------------------------------------------------------------------------
+ 
++def _forget_session(profile_dir: Path) -> None:
++    """Delete the saved tabs so a cloned profile never reopens the user's old session."""
++    import shutil as _sh
++    default = profile_dir / "Default"
++    for name in ("Current Session", "Current Tabs", "Last Session", "Last Tabs"):
++        (default / name).unlink(missing_ok=True)
++    _sh.rmtree(default / "Sessions", ignore_errors=True)
++
++
++def _frontmost_app() -> str:
++    """macOS: the app the user is working in (so focus can be handed back after Chrome opens)."""
++    if platform.system() != "Darwin":
++        return ""
++    try:
++        return subprocess.run(
++            ["osascript", "-e", 'tell application "System Events" to get name of first process whose frontmost is true'],
++            capture_output=True, text=True, timeout=5).stdout.strip()
++    except Exception:
++        return ""
++
++
+ def launch_chrome(worker_id: int, port: int | None = None,
+                   headless: bool = False) -> subprocess.Popen:
+     """Launch a Chrome instance with remote debugging for a worker.
+@@ -208,6 +245,8 @@ def launch_chrome(worker_id: int, port: int | None = None,
+ 
+     # Patch preferences to suppress restore nag
+     _suppress_restore_nag(profile_dir)
++    _forget_session(profile_dir)
++    user_app = _frontmost_app()
+ 
+     chrome_exe = config.get_chrome_path()
+ 
+@@ -219,6 +258,7 @@ def launch_chrome(worker_id: int, port: int | None = None,
+         "--no-first-run",
+         "--no-default-browser-check",
+         "--window-size=1024,768",
++        "--window-position=-2400,-2400",  # off-screen: it is only moved into view when you are needed
+         "--disable-session-crashed-bubble",
+         "--disable-features=InfiniteSessionRestore,PasswordManagerOnboarding",
+         "--hide-crash-restore-bubble",
+@@ -232,6 +272,7 @@ def launch_chrome(worker_id: int, port: int | None = None,
+         "--deny-permission-prompts",
+         "--disable-notifications",
+     ]
++    cmd.append("about:blank")
+     if headless:
+         cmd.append("--headless=new")
+ 
+@@ -247,6 +288,9 @@ def launch_chrome(worker_id: int, port: int | None = None,
+ 
+     # Give Chrome time to start and open the debug port
+     time.sleep(3)
++    if user_app and user_app != "Google Chrome":  # hand focus straight back to what you were doing
++        subprocess.run(["osascript", "-e", f'tell application "{user_app}" to activate'],
++                       capture_output=True, timeout=5)
+     logger.info("[worker-%d] Chrome started on port %d (pid %d)",
+                 worker_id, port, proc.pid)
+     return proc
+@@ -266,6 +310,25 @@ def cleanup_worker(worker_id: int, process: subprocess.Popen | None) -> None:
      logger.info("[worker-%d] Chrome cleaned up", worker_id)
  
  
@@ -83,7 +146,7 @@ index 690211a..abfbb58 100644
  def kill_all_chrome() -> None:
      """Kill all Chrome instances and any port zombies.
  
-@@ -281,7 +316,8 @@ def kill_all_chrome() -> None:
+@@ -281,7 +344,8 @@ def kill_all_chrome() -> None:
          _kill_on_port(BASE_CDP_PORT + wid)
  
      # Sweep base port in case of zombies
@@ -93,7 +156,7 @@ index 690211a..abfbb58 100644
  
  
  def reset_worker_dir(worker_id: int) -> Path:
-@@ -318,4 +354,5 @@ def cleanup_on_exit() -> None:
+@@ -318,4 +382,5 @@ def cleanup_on_exit() -> None:
          _kill_on_port(BASE_CDP_PORT + wid)
  
      # Sweep base port for any orphan
@@ -529,7 +592,7 @@ index 97692d5..62d98f8 100644
  
  def _parse_score_response(response: str) -> dict:
 diff --git a/src/applypilot/scoring/tailor.py b/src/applypilot/scoring/tailor.py
-index 352fb5f..b5ecf2a 100644
+index 352fb5f..d5514f1 100644
 --- a/src/applypilot/scoring/tailor.py
 +++ b/src/applypilot/scoring/tailor.py
 @@ -93,9 +93,21 @@ SKILLS: Reorder each category so the job's must-haves appear first.
